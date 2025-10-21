@@ -1,5 +1,5 @@
 import pandas as pd
-file_path = 'global-data-on-sustainable-energy.csv'
+file_path = 'data/global-data-on-sustainable-energy (1).csv'
 
 df = pd.read_csv(file_path, sep=',')
 #print("First 5 Rows (Head)")
