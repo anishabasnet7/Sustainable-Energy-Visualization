@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Data Visualization</title>
+    <!-- ! Bootstrap -->
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+    <!-- ! Main Template CSS File -->
+    <link rel="stylesheet" href="css/style.min.css">
+  </head>
+  <body>
+    <div class="container-fluid">
+        <div class="row">
+            <nav class="col-md-3 col-lg-2 d-md-block bg-dark sidebar text-white p-3">
+            <ul class="nav flex-column">
+                <li class="nav-item"><a class="nav-link text-white" href="#">Home</a></li>
+                <li class="nav-item">
+                    <!-- Dashboard with dropdown -->
+                    <a class="nav-link text-white" data-bs-toggle="collapse" href="#dashboardMenu" role="button" aria-expanded="false" aria-controls="dashboardMenu">
+                        Dashboard ▼
+                    </a>
+                    <div class="collapse" id="dashboardMenu">
+                        <ul class="nav flex-column ms-3">
+                            <li class="nav-item"><a class="nav-link text-white" href="#">Dashboard 1</a></li>
+                            <li class="nav-item"><a class="nav-link text-white" href="#">Dashboard 2</a></li>
+                            <li class="nav-item"><a class="nav-link text-white" href="#">Dashboard 3</a></li>
+                        </ul>
+                    </div>
+                </li>
+            </ul>
+            </nav>
+
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+            <h1>Main Content</h1>
+            </main>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>
+  </body>
+</html>
