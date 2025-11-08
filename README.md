@@ -27,14 +27,25 @@ git clone https://github.com/anishabasnet7/Sustainable-Energy-Visualization.git
 ```shell
 pip install kaggle
 ```
+
 2. Place your Kaggle API key (kaggle.json) in the .kaggle folder in your home directory:
 ```shell
 mkdir -p ~/.kaggle
 mv /path/to/kaggle.json ~/.kaggle/
 chmod 600 ~/.kaggle/kaggle.json
 ```
+
 3. Download and unzip the dataset:
 ```shell
 kaggle datasets download -d anshtanwar/global-data-on-sustainable-energy -p data/
 unzip data/global-data-on-sustainable-energy.zip -d data/
 ```
+
+4. React setup:
+```shell
+npx create-react-app energy-dashboard
+cd energy-dashboard
+npm install recharts papaparse
+```
+
+
