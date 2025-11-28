@@ -1,4 +1,6 @@
 import { draw_overall_co2_timeseries, draw_top10_co2_emiters } from './dashboard_1.js';
+import { electricity_vs_cleancooking, clean_cooking_trend } from "./dashboard_4.js";
+
 
 const dashboardConfigs = {
     'dashboard-1': {
@@ -64,6 +66,40 @@ const dashboardConfigs = {
         }, { 
             title: 'Top 10 Countris of CO2 Emission (kT x 1e6) 2000-2019',
             drawFunction: draw_top10_co2_emiters,
+            data_path: '../../data/processed_data.csv'
+        }]
+    },
+    'dashboard-4': {
+        title: 'Energy Access Assessment for Low Income Countries',
+        explanationTitle: 'Analysis and Interpretation: ....',
+        explanation: `
+            <p class="mb-4">
+            The 1st chart show top 10 low-income countries with the 
+            hoghest gap between electricity access and clean cooking fuel 
+            access for that year. The 2nd chart shows how access 
+            to clean cooking fuels has changed over time for those countries, 
+            allowing Jane to see trends and improvements.
+            </p>
+        `,
+
+        charts: [{ 
+            title: 'Electricity Access vs Clean Cooking Access (2000–2020)',
+            drawFunction: (data_path, svgId) => electricity_vs_cleancooking(data_path, svgId)
+            .then(top10Countries => {
+                clean_cooking_trend(data_path, '#svg-slot-2', top10Countries);
+            }),
+            data_path: '../../data/processed_data.csv'
+        }, { 
+            title: 'Clean Cooking Fuel Access Trend',
+            drawFunction: (data_path, svgId) => { 
+            const svg = d3.select(svgId);
+            svg.selectAll("*").remove();
+            svg.append("text")
+               .attr("x", parseInt(svg.style("width"))/2)
+               .attr("y", parseInt(svg.style("height"))/2)
+               .attr("text-anchor", "middle")
+               .attr("fill", "#999");
+        },
             data_path: '../../data/processed_data.csv'
         }]
     }
