@@ -1,5 +1,6 @@
 import { draw_overall_co2_timeseries, draw_top10_co2_emiters } from './dashboard_1.js';
 import { electricity_vs_cleancooking, clean_cooking_trend } from "./dashboard_4.js";
+import {fossil_vs_lowcarbon} from "./dashboard_5.js";
 
 
 const dashboardConfigs = {
@@ -102,7 +103,22 @@ const dashboardConfigs = {
         },
             data_path: '../../data/processed_data.csv'
         }]
-    }
+    },
+    'dashboard-5': {
+        title: 'John',
+        explanationTitle: 'Analysis and Interpretation: Bar Chart',
+        explanation: `
+            <p class="mb-4">
+                Test 
+            </p>
+        `,
+
+        charts: [{ 
+            title: ' Trend 2000-2019',
+            drawFunction: fossil_vs_lowcarbon,
+            data_path: '../../data/processed_data.csv'
+        }]
+    },
 };
 
 function resetChartSlots(maxSlots = 3) {
