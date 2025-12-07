@@ -8,40 +8,39 @@ import {fossil_vs_lowcarbon} from "./dashboard_5.js";
 const dashboardConfigs = {
     'dashboard-1': {
         title: 'Overall CO2 Emission Trend (2000-2019)',
-        explanationTitle: 'Analysis and Interpretation: Bar Chart',
+        explanationTitle: 'Analysis and Interpretation: Line Chart & Bar Chart',
         explanation: `
             <p class="mb-4">
-                Based on the two charts provided, here is an analysis of CO<sub>2</sub> emissions between the years 2000 and 2019.
-                The most striking feature is the magnitude of China's emissions. The blue bar for China reaches over 200M on the chart's scale. Visually, China's total emissions for this period appear to be roughly 4 times higher than the next highest contributor.
-                India and the United States represent the next distinct grouping. After the top three nations, there is a massive disparity. Countries like Japan, Indonesia, Brazil, and Germany contribute significantly less to the total global volume compared to the top three. Their bars are barely visible relative to China's.
-                The slope is relatively steep and consistent from 2000 to 2011. There is a slight leveling off around 2014–2016, but the upward trend resumes by 2017.
+                Based on the two charts, global COsub>2</sub> emissions steadily increased from 2000 to 2019. 
+                In 2000, total emissions were about 9 billion tons, and by 2019 they had risen sharply to around 22 billion tons. 
+                This shows a strong and continuous upward trend over the years. China is the largest contributor to CO₂ emissions. 
+                Its emissions are much higher than any other country, appearing to be about four times larger than the next highest country in the chart. 
+                The United States and India are the next biggest contributors, followed by other countries such as Japan, Indonesia, Brazil, and Germany.
             </p>
         `,
 
         charts: [{ 
-            title: 'Overall CO2 Emission (kT x 1e6) Trend 2000-2019',
+            title: 'User Story1: Overall CO2 Emission (kT x 1e6) Trend 2000-2019',
             drawFunction: draw_overall_co2_timeseries, 
             data_path: '../../data/processed_data.csv'
         }, { 
-            title: 'Top 10 Countris of CO2 Emission (kT x 1e6) 2000-2019',
+            title: 'User Story1: Top 10 Countris of CO2 Emission (kT x 1e6) 2000-2019',
             drawFunction: draw_top10_co2_emiters, 
             data_path: '../../data/processed_data.csv'
         }]
     },
     'dashboard-2': {
         title: 'Trend of Electricity Generation from Renewable Sources',
-        explanationTitle: 'Trend of Electricity Generation from Renewable Sources in Germany',
+        explanationTitle: 'Analysis and Interpretation: Line Chart',
         explanation: `
             <p class="mb-4">
-                The chart clearly visualizes the successful and sustained expansion of renewable energy capacity in Germany over the first two decades of the 21st century, with the most substantial gains occurring in the second half of the period. 
-                At the beginning, renewable electricity generation was relatively low, at approximately 35 to 40 TWh (Terawatt-hours).
-                By 2020, generation had risen dramatically to approximately 250 TWh.
-                This data highlights the nation's consistent movement away from conventional energy sources towards sustainable generation.
+                The chart shows that renewable energy in Germany increased steadily in the first two decades of the 21st century, with the biggest growth happening in the later years. 
+                At the start, renewable electricity generation was low, at about 35–40 TWh. By 2020, it had increased sharply to around 250 TWh.
             </p>
         `,
 
         charts: [{ 
-            title: 'Trend of Electricity Generation from Renewable Sources in Germany',
+            title: 'User Story2: Trend of Electricity Generation from Renewable Sources in Germany',
             drawFunction: draw_germany_renewables_timeseries, 
             data_path: '../../data/processed_data.csv'
         }]
@@ -51,31 +50,33 @@ const dashboardConfigs = {
         explanationTitle: 'Correlation of Energy consumption per capita vs GDP per capita',
         explanation: `
             <p class="mb-4">
-                The scatter plot visually represents the relationship between Average GDP Per Capita (x-axis) and Average Energy Consumption Per Person ( y-axis). 
-                The data shows a clear and strong positive correlation: as economic prosperity, measured by GDP per capita, increases, so does the average energy consumption per person. 
-                Countries with very low GDP per capita (below $1,000) use minimal energy, consistent with developing economies. 
-                As nations transition into the mid-range and high-income brackets, energy use accelerates sharply, reflecting the demands of industrialization, infrastructure, and higher living standards. 
-                However, the scatter of the points, especially among high-income nations, indicates significant variability; some wealthy countries are outliers with extremely high energy consumption due to resource-heavy industries or climate, while others maintain high GDP per capita with relatively lower energy consumption, suggesting greater energy efficiency or a shift towards service-based economies. 
-                In essence, the chart confirms that energy consumption is fundamentally linked to economic development, but the degree of energy efficiency varies widely across the globe.
+                The scatter plot shows the relationship between average GDP per person (x-axis) and average energy use per person (y-axis). 
+                The chart shows a clear pattern: as a country becomes richer, people tend to use more energy. 
+                Countries with very low GDP per person (below $1,000) use very little energy. 
+                As countries become middle- and high-income nations, energy use increases quickly. 
+                This is because of more factories, better infrastructure, and higher living standards. 
+                However, among rich countries, the data points are more spread out. 
+                Some wealthy countries use a lot of energy because of large industries or cold climates, while others use less energy even with high GDP. 
+                This suggests that some countries are more energy-efficient than others.
             </p>
         `,
 
         charts: [{ 
-            title: 'Correlation of Energy consumption per capita vs GDP per capita',
+            title: 'User Story3: Correlation of Energy consumption per capita vs GDP per capita',
             drawFunction: draw_correlation_scatter, 
             data_path: '../../data/processed_data.csv'
         }]
     },
     'dashboard-4': {
         title: 'Energy Access Assessment for Low Income Countries',
-        explanationTitle: 'Analysis and Interpretation: ....',
+        explanationTitle: 'Analysis and Interpretation: Line Chart & Bar Chart',
         explanation: `
             <p class="mb-4">
-            The 1st chart show top 5 low-income countries with the 
-            hoghest gap between electricity access and clean cooking fuel 
-            access for that year. The 2nd chart shows how access 
-            to clean cooking fuels has changed over time for those countries, 
-            allowing Jane to see trends and improvements.
+                The 1st chart show top 5 low-income countries with the 
+                hoghest gap between electricity access and clean cooking fuel 
+                access for that year. The 2nd chart shows how access 
+                to clean cooking fuels has changed over time for those countries, 
+                allowing Jane to see trends and improvements.
             </p>
         `,
 
