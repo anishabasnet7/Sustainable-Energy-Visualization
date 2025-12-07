@@ -1,7 +1,7 @@
 import { draw_overall_co2_timeseries, draw_top10_co2_emiters } from './dashboard_1.js';
 import { draw_germany_renewables_timeseries } from './dashboard_2.js'
-import { electricity_vs_cleancooking, clean_cooking_trend } from "./dashboard_3.js";
-import {fossil_vs_lowcarbon} from "./dashboard_4.js";
+import { electricity_vs_cleancooking, clean_cooking_trend } from "./dashboard_4.js";
+import {fossil_vs_lowcarbon} from "./dashboard_5.js";
 
 
 const dashboardConfigs = {
@@ -46,6 +46,24 @@ const dashboardConfigs = {
         }]
     },
     'dashboard-3': {
+        title: 'Trend of Electricity Generation from Renewable Sources',
+        explanationTitle: 'Trend of Electricity Generation from Renewable Sources in Germany',
+        explanation: `
+            <p class="mb-4">
+                The chart clearly visualizes the successful and sustained expansion of renewable energy capacity in Germany over the first two decades of the 21st century, with the most substantial gains occurring in the second half of the period. 
+                At the beginning, renewable electricity generation was relatively low, at approximately 35 to 40 TWh (Terawatt-hours).
+                By 2020, generation had risen dramatically to approximately 250 TWh.
+                This data highlights the nation's consistent movement away from conventional energy sources towards sustainable generation.
+            </p>
+        `,
+
+        charts: [{ 
+            title: 'Trend of Electricity Generation from Renewable Sources in Germany',
+            drawFunction: draw_germany_renewables_timeseries, 
+            data_path: '../../data/processed_data.csv'
+        }]
+    },
+    'dashboard-4': {
         title: 'Energy Access Assessment for Low Income Countries',
         explanationTitle: 'Analysis and Interpretation: ....',
         explanation: `
@@ -79,7 +97,7 @@ const dashboardConfigs = {
             data_path: '../../data/processed_data.csv'
         }]
     },
-    'dashboard-4': {
+    'dashboard-5': {
         title: 'John',
         explanationTitle: 'Analysis and Interpretation: Bar Chart',
         explanation: `
