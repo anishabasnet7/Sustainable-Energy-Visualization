@@ -1,5 +1,6 @@
 import { draw_overall_co2_timeseries, draw_top10_co2_emiters } from './dashboard_1.js';
 import { draw_germany_renewables_timeseries } from './dashboard_2.js'
+import { draw_correlation_scatter } from './dashboard_3.js'
 import { electricity_vs_cleancooking, clean_cooking_trend } from "./dashboard_4.js";
 import {fossil_vs_lowcarbon} from "./dashboard_5.js";
 
@@ -46,20 +47,22 @@ const dashboardConfigs = {
         }]
     },
     'dashboard-3': {
-        title: 'Trend of Electricity Generation from Renewable Sources',
-        explanationTitle: 'Trend of Electricity Generation from Renewable Sources in Germany',
+        title: 'Correlation of Energy consumption per capita vs GDP per capita',
+        explanationTitle: 'Correlation of Energy consumption per capita vs GDP per capita',
         explanation: `
             <p class="mb-4">
-                The chart clearly visualizes the successful and sustained expansion of renewable energy capacity in Germany over the first two decades of the 21st century, with the most substantial gains occurring in the second half of the period. 
-                At the beginning, renewable electricity generation was relatively low, at approximately 35 to 40 TWh (Terawatt-hours).
-                By 2020, generation had risen dramatically to approximately 250 TWh.
-                This data highlights the nation's consistent movement away from conventional energy sources towards sustainable generation.
+                The scatter plot visually represents the relationship between Average GDP Per Capita (x-axis) and Average Energy Consumption Per Person ( y-axis). 
+                The data shows a clear and strong positive correlation: as economic prosperity, measured by GDP per capita, increases, so does the average energy consumption per person. 
+                Countries with very low GDP per capita (below $1,000) use minimal energy, consistent with developing economies. 
+                As nations transition into the mid-range and high-income brackets, energy use accelerates sharply, reflecting the demands of industrialization, infrastructure, and higher living standards. 
+                However, the scatter of the points, especially among high-income nations, indicates significant variability; some wealthy countries are outliers with extremely high energy consumption due to resource-heavy industries or climate, while others maintain high GDP per capita with relatively lower energy consumption, suggesting greater energy efficiency or a shift towards service-based economies. 
+                In essence, the chart confirms that energy consumption is fundamentally linked to economic development, but the degree of energy efficiency varies widely across the globe.
             </p>
         `,
 
         charts: [{ 
-            title: 'Trend of Electricity Generation from Renewable Sources in Germany',
-            drawFunction: draw_germany_renewables_timeseries, 
+            title: 'Correlation of Energy consumption per capita vs GDP per capita',
+            drawFunction: draw_correlation_scatter, 
             data_path: '../../data/processed_data.csv'
         }]
     },
