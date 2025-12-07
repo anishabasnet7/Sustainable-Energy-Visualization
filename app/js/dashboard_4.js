@@ -1,170 +1,99 @@
-export function electricity_vs_cleancooking(csvPath, svgId) {
-    return d3.csv(csvPath).then(data => {
+export function fossil_vs_lowcarbon(csvPath, svgId) {
+    d3.csv(csvPath).then(data => {
+        // Convert numeric columns
         data.forEach(d => {
-            d.access_to_electricity = +d.access_to_electricity;
-            d.access_to_clean_fuels_for_cooking = +d.access_to_clean_fuels_for_cooking;
-            d.gdp_per_capita = +d.gdp_per_capita;
+            d.electricity_from_fuels = +d.electricity_from_fuels;
+            d.electricity_from_nuclear = +d.electricity_from_nuclear;
+            d.electricity_from_renewables = +d.electricity_from_renewables;
+            d.low_carbon_electricity_percentage = +d.low_carbon_electricity_percentage;
+            d.energy_consumption_per_person = +d.energy_consumption_per_person;
             d.year = +d.year;
         });
 
-        // latest year
+        // Get latest year
         const latestYear = d3.max(data, d => d.year);
-        let currentYear = latestYear;
+        const latestData = data.filter(d => d.year === latestYear);
+
+        // Compute fossil fuel dependence %
+        latestData.forEach(d => {
+            const total = d.electricity_from_fuels + d.electricity_from_nuclear + d.electricity_from_renewables;
+            d.fossil_dependence = total ? (d.electricity_from_fuels / total) * 100 : 0;
+        });
+
+        // Get top 10 countries by fossil dependence
+        const top10 = latestData.sort((a, b) => b.fossil_dependence - a.fossil_dependence).slice(0, 10);
 
         const svg = d3.select(svgId);
         svg.selectAll("*").remove();
 
         const width = parseInt(svg.style("width"));
         const height = parseInt(svg.style("height"));
-        const margin = { top: 40, right: 50, bottom: 40, left: 150 };
+        const margin = { top: 40, right: 50, bottom: 50, left: 120 };
 
-        const x = d3.scaleLinear().range([margin.left, width - margin.right]);
-        const y = d3.scaleBand().range([margin.top, height - margin.bottom]).padding(0.2);
+        const xMax = d3.max(top10, d => Math.max(d.fossil_dependence, d.low_carbon_electricity_percentage));
+        const x = d3.scaleLinear().domain([0, xMax]).range([margin.left, width - margin.right]);
 
-        // axes
-        svg.append("g").attr("class", "x-axis").attr("transform", `translate(0,${height - margin.bottom})`);
-        svg.append("g").attr("class", "y-axis").attr("transform", `translate(${margin.left},0)`);
+        const y = d3.scaleBand()
+            .domain(top10.map(d => d.country))
+            .range([margin.top, height - margin.bottom])
+            .padding(0.3);
 
-        svg.append("text")
-            .attr("x", width / 2)
-            .attr("y", height - 5)
-            .attr("text-anchor", "middle")
-            .text("Gap: Electricity Access - Clean Cooking Access (%)");
+        const barHeight = y.bandwidth() / 2;
 
-        function updateBars(year) {
-            const lowIncomeData = data.filter(d => d.gdp_per_capita <= 2000 && d.year === year);
-
-            lowIncomeData.forEach(d => d.gap = d.access_to_electricity - d.access_to_clean_fuels_for_cooking);
-
-            const top10 = lowIncomeData.sort((a, b) => b.gap - a.gap).slice(0, 10);
-
-            console.log(`Top 10 low-income countries in ${year}:`);
-            top10.forEach((d, i) => {
-                console.log(`${i + 1}. ${d.country} — Electricity: ${d.access_to_electricity}%, Clean Cooking: ${d.access_to_clean_fuels_for_cooking}%`);
-            });
-
-            x.domain([0, d3.max(top10, d => d.gap)]);
-            y.domain(top10.map(d => d.country));
-
-            svg.select(".x-axis").transition().duration(500).call(d3.axisBottom(x));
-            svg.select(".y-axis").transition().duration(500).call(d3.axisLeft(y));
-
-            const bars = svg.selectAll("rect").data(top10, d => d.country);
-
-            bars.enter()
-                .append("rect")
-                .attr("x", margin.left)
-                .attr("y", d => y(d.country))
-                .attr("height", y.bandwidth())
-                .attr("width", 0)
-                .attr("fill", "#dc2626")
-                .merge(bars)
-                .transition()
-                .duration(500)
-                .attr("width", d => x(d.gap) - margin.left);
-
-            bars.exit().remove();
-
-            const labels = svg.selectAll(".label").data(top10, d => d.country);
-            labels.enter()
-                .append("text")
-                .attr("class", "label")
-                .attr("x", d => x(d.gap) + 5)
-                .attr("y", d => y(d.country) + y.bandwidth() / 2)
-                .attr("alignment-baseline", "middle")
-                .attr("fill", "#333")
-                .text(d => d.gap.toFixed(1) + "%")
-                .merge(labels)
-                .transition().duration(500)
-                .attr("x", d => x(d.gap) + 5)
-                .attr("y", d => y(d.country) + y.bandwidth() / 2)
-                .text(d => d.gap.toFixed(1) + "%");
-
-            labels.exit().remove();
-
-            return top10.map(d => d.country); // top10 countries
-        }
-
-        // slider 
-        const sliderContainer = d3.select("#slider-container");
-        sliderContainer.html(`
-            <label for="year-slider">Year:</label>
-            <input type="range" id="year-slider" min="${d3.min(data, d => d.year)}" max="${latestYear}" step="1" value="${latestYear}">
-            <span id="year-label">${latestYear}</span>
-        `);
-
-        const slider = document.getElementById('year-slider');
-        const yearLabel = document.getElementById('year-label');
-        slider.addEventListener('input', () => {
-            currentYear = +slider.value;
-            yearLabel.textContent = currentYear;
-            const top10Countries = updateBars(currentYear);
-            clean_cooking_trend(csvPath, "#svg-slot-2", top10Countries);
-
-        });
-
-        const top10Countries = updateBars(currentYear);
-        clean_cooking_trend(csvPath, "#svg-slot-2", top10Countries);
-
-        return top10Countries;
-    });
-}
-export function clean_cooking_trend(csvPath, svgId, top10Countries) {
-    return d3.csv(csvPath).then(data => {
-        data.forEach(d => {
-            d.access_to_clean_fuels_for_cooking = +d.access_to_clean_fuels_for_cooking;
-            d.year = +d.year;
-        });
-
-        const filtered = data.filter(d => top10Countries.includes(d.country));
-
-        const svg = d3.select(svgId);
-        svg.selectAll("*").remove();
-
-        const width = parseInt(svg.style("width"));
-        const height = parseInt(svg.style("height"));
-        const margin = { top: 40, right: 120, bottom: 50, left: 60 };
-
-        const x = d3.scaleLinear()
-            .domain(d3.extent(filtered, d => d.year))
-            .range([margin.left, width - margin.right]);
-
-        const y = d3.scaleLinear()
-            .domain([0, d3.max(filtered, d => d.access_to_clean_fuels_for_cooking)])
-            .range([height - margin.bottom, margin.top]);
-
+        // Axes
         svg.append("g")
             .attr("transform", `translate(0,${height - margin.bottom})`)
-            .call(d3.axisBottom(x).tickFormat(d3.format("d")));
+            .call(d3.axisBottom(x).ticks(6).tickFormat(d => d + "%"));
 
         svg.append("g")
             .attr("transform", `translate(${margin.left},0)`)
             .call(d3.axisLeft(y));
 
-        const color = d3.scaleOrdinal()
-            .domain(top10Countries)
-            .range(d3.schemeSet2);
+        // Labels
+        svg.append("text")
+            .attr("x", width / 2)
+            .attr("y", height - 10)
+            .attr("text-anchor", "middle")
+            .text("Percentage (%)");
 
-        const countries = d3.group(filtered, d => d.country);
+        svg.append("text")
+            .attr("x", -height / 2)
+            .attr("y", 20)
+            .attr("transform", "rotate(-90)")
+            .attr("text-anchor", "middle")
+            .text("Country");
 
-        countries.forEach((values, key) => {
-            svg.append("path")
-                .datum(values)
-                .attr("fill", "none")
-                .attr("stroke", color(key))
-                .attr("stroke-width", 2)
-                .attr("d", d3.line()
-                    .x(d => x(d.year))
-                    .y(d => y(d.access_to_clean_fuels_for_cooking))
-                );
+        // Bars
+        svg.selectAll(".fossil-bar")
+            .data(top10)
+            .enter()
+            .append("rect")
+            .attr("class", "fossil-bar")
+            .attr("x", x(0))
+            .attr("y", d => y(d.country))
+            .attr("height", barHeight)
+            .attr("width", d => x(d.fossil_dependence) - x(0))
+            .attr("fill", "#dc2626")
+            .append("title")
+            .text(d => `Fossil: ${d.fossil_dependence.toFixed(1)}%`);
 
-            const lastValue = values[values.length - 1].access_to_clean_fuels_for_cooking;
-            svg.append("text")
-                .attr("x", width - margin.right + 5)
-                .attr("y", y(lastValue))
-                .text(key)
-                .attr("alignment-baseline", "middle")
-                .attr("fill", color(key));
-        });
+        svg.selectAll(".lowcarbon-bar")
+            .data(top10)
+            .enter()
+            .append("rect")
+            .attr("class", "lowcarbon-bar")
+            .attr("x", x(0))
+            .attr("y", d => y(d.country) + barHeight)
+            .attr("height", barHeight)
+            .attr("width", d => x(d.low_carbon_electricity_percentage) - x(0))
+            .attr("fill", "#2563eb")
+            .append("title")
+            .text(d => `Low-Carbon: ${d.low_carbon_electricity_percentage}%`);
+
+        // Optional: add legend
+        svg.append("rect").attr("x", width - margin.right - 100).attr("y", margin.top - 30).attr("width", 15).attr("height", 15).attr("fill", "#dc2626");
+        svg.append("text").attr("x", width - margin.right - 80).attr("y", margin.top - 18).text("Fossil").attr("alignment-baseline", "middle");
+        svg.append("rect").attr("x", width - margin.right - 50).attr("y", margin.top - 30).attr("width", 15).attr("height", 15).attr("fill", "#2563eb");
+        svg.append("text").attr("x", width - margin.right - 30).attr("y", margin.top - 18).text("Low-Carbon").attr("alignment-baseline", "middle");
     });
 }

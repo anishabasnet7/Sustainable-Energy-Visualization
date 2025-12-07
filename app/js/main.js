@@ -1,6 +1,7 @@
 import { draw_overall_co2_timeseries, draw_top10_co2_emiters } from './dashboard_1.js';
-import { electricity_vs_cleancooking, clean_cooking_trend } from "./dashboard_4.js";
-import {fossil_vs_lowcarbon} from "./dashboard_5.js";
+import { draw_germany_renewables_timeseries } from './dashboard_2.js'
+import { electricity_vs_cleancooking, clean_cooking_trend } from "./dashboard_3.js";
+import {fossil_vs_lowcarbon} from "./dashboard_4.js";
 
 
 const dashboardConfigs = {
@@ -9,7 +10,7 @@ const dashboardConfigs = {
         explanationTitle: 'Analysis and Interpretation: Bar Chart',
         explanation: `
             <p class="mb-4">
-                Based on the two charts provided, here is an analysis of CO$_2$ emissions between the years 2000 and 2019.
+                Based on the two charts provided, here is an analysis of CO<sub>2</sub> emissions between the years 2000 and 2019.
                 The most striking feature is the magnitude of China's emissions. The blue bar for China reaches over 200M on the chart's scale. Visually, China's total emissions for this period appear to be roughly 4 times higher than the next highest contributor.
                 India and the United States represent the next distinct grouping. After the top three nations, there is a massive disparity. Countries like Japan, Indonesia, Brazil, and Germany contribute significantly less to the total global volume compared to the top three. Their bars are barely visible relative to China's.
                 The slope is relatively steep and consistent from 2000 to 2011. There is a slight leveling off around 2014–2016, but the upward trend resumes by 2017.
@@ -27,50 +28,24 @@ const dashboardConfigs = {
         }]
     },
     'dashboard-2': {
-        title: 'Overall CO2 Emission Trend (2000-2019)',
-        explanationTitle: 'Analysis and Interpretation: Bar Chart',
+        title: 'Trend of Electricity Generation from Renewable Sources',
+        explanationTitle: 'Trend of Electricity Generation from Renewable Sources in Germany',
         explanation: `
             <p class="mb-4">
-                Based on the two charts provided, here is an analysis of CO$_2$ emissions between the years 2000 and 2019.
-                The most striking feature is the magnitude of China's emissions. The blue bar for China reaches over 200M on the chart's scale. Visually, China's total emissions for this period appear to be roughly 4 times higher than the next highest contributor.
-                India and the United States represent the next distinct grouping. After the top three nations, there is a massive disparity. Countries like Japan, Indonesia, Brazil, and Germany contribute significantly less to the total global volume compared to the top three. Their bars are barely visible relative to China's.
-                The slope is relatively steep and consistent from 2000 to 2011. There is a slight leveling off around 2014–2016, but the upward trend resumes by 2017.
+                The chart clearly visualizes the successful and sustained expansion of renewable energy capacity in Germany over the first two decades of the 21st century, with the most substantial gains occurring in the second half of the period. 
+                At the beginning, renewable electricity generation was relatively low, at approximately 35 to 40 TWh (Terawatt-hours).
+                By 2020, generation had risen dramatically to approximately 250 TWh.
+                This data highlights the nation's consistent movement away from conventional energy sources towards sustainable generation.
             </p>
         `,
 
         charts: [{ 
-            title: 'Overall CO2 Emission (kT x 1e6) Trend 2000-2019',
-            drawFunction: draw_overall_co2_timeseries, 
-            data_path: '../../data/processed_data.csv'
-        }, { 
-            title: 'Top 10 Countris of CO2 Emission (kT x 1e6) 2000-2019',
-            drawFunction: draw_top10_co2_emiters,
+            title: 'Trend of Electricity Generation from Renewable Sources in Germany',
+            drawFunction: draw_germany_renewables_timeseries, 
             data_path: '../../data/processed_data.csv'
         }]
     },
     'dashboard-3': {
-        title: 'Overall CO2 Emission Trend (2000-2019)',
-        explanationTitle: 'Analysis and Interpretation: Bar Chart',
-        explanation: `
-            <p class="mb-4">
-                Based on the two charts provided, here is an analysis of CO$_2$ emissions between the years 2000 and 2019.
-                The most striking feature is the magnitude of China's emissions. The blue bar for China reaches over 200M on the chart's scale. Visually, China's total emissions for this period appear to be roughly 4 times higher than the next highest contributor.
-                India and the United States represent the next distinct grouping. After the top three nations, there is a massive disparity. Countries like Japan, Indonesia, Brazil, and Germany contribute significantly less to the total global volume compared to the top three. Their bars are barely visible relative to China's.
-                The slope is relatively steep and consistent from 2000 to 2011. There is a slight leveling off around 2014–2016, but the upward trend resumes by 2017.
-            </p>
-        `,
-
-        charts: [{ 
-            title: 'Overall CO2 Emission (kT x 1e6) Trend 2000-2019',
-            drawFunction: draw_overall_co2_timeseries,
-            data_path: '../../data/processed_data.csv'
-        }, { 
-            title: 'Top 10 Countris of CO2 Emission (kT x 1e6) 2000-2019',
-            drawFunction: draw_top10_co2_emiters,
-            data_path: '../../data/processed_data.csv'
-        }]
-    },
-    'dashboard-4': {
         title: 'Energy Access Assessment for Low Income Countries',
         explanationTitle: 'Analysis and Interpretation: ....',
         explanation: `
@@ -104,7 +79,7 @@ const dashboardConfigs = {
             data_path: '../../data/processed_data.csv'
         }]
     },
-    'dashboard-5': {
+    'dashboard-4': {
         title: 'John',
         explanationTitle: 'Analysis and Interpretation: Bar Chart',
         explanation: `
@@ -138,7 +113,7 @@ function loadDashboard(id) {
     document.getElementById('viz-panel-title').textContent = config.title;
     document.getElementById('viz-explanation-title').textContent = config.explanationTitle;
     document.getElementById('viz-explanation-text').innerHTML = config.explanation;
-
+    // document.getElementById('slider-container').innerHTML = '';
     resetChartSlots(5); 
 
     config.charts.forEach((chartConfig, index) => {
