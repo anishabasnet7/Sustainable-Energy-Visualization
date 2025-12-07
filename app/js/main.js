@@ -71,7 +71,7 @@ const dashboardConfigs = {
         explanationTitle: 'Analysis and Interpretation: ....',
         explanation: `
             <p class="mb-4">
-            The 1st chart show top 10 low-income countries with the 
+            The 1st chart show top 5 low-income countries with the 
             hoghest gap between electricity access and clean cooking fuel 
             access for that year. The 2nd chart shows how access 
             to clean cooking fuels has changed over time for those countries, 
@@ -80,7 +80,7 @@ const dashboardConfigs = {
         `,
 
         charts: [{ 
-            title: 'Electricity Access vs Clean Cooking Access (2000–2020)',
+            title: 'User Story4: Electricity Access vs Clean Cooking Access (2000–2020)',
             drawFunction: (data_path, svgId) => electricity_vs_cleancooking(data_path, svgId)
             .then(top10Countries => {
                 clean_cooking_trend(data_path, '#svg-slot-2', top10Countries);
@@ -101,11 +101,16 @@ const dashboardConfigs = {
         }]
     },
     'dashboard-5': {
-        title: 'John',
+        title: 'User Story5: John Smith - Energy Analyst',
         explanationTitle: 'Analysis and Interpretation: Bar Chart',
         explanation: `
             <p class="mb-4">
-                Test 
+                This chart will help analysts identify which countries are 
+                leading the green energy transition and which is dependent on traditional fuel 
+                sources. Red Bar show the percentage of electricity generated from Fossil Fuels (Coal, Oil, Gas).
+                Green Bar is for the percentage from Low-Carbon sources (Nuclear, Hydro, Solar, Wind).
+                John can use the dropdown to toggle "Most Dependent on Fossil Fuels" and "Leading in Low-Carbon" countries.
+                There is a slider to observe how energy profiles have evolved over time from 2000 to 2019.
             </p>
         `,
 
