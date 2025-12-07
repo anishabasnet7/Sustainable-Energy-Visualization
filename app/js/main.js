@@ -134,7 +134,7 @@ function loadDashboard(id) {
     document.getElementById('viz-panel-title').textContent = config.title;
     document.getElementById('viz-explanation-title').textContent = config.explanationTitle;
     document.getElementById('viz-explanation-text').innerHTML = config.explanation;
-    // document.getElementById('slider-container').innerHTML = '';
+    document.getElementById('slider-container').innerHTML = '';
     resetChartSlots(5); 
 
     config.charts.forEach((chartConfig, index) => {
