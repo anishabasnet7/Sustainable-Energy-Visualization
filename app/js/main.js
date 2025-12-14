@@ -72,11 +72,12 @@ const dashboardConfigs = {
         explanationTitle: 'Analysis and Interpretation: Line Chart & Bar Chart',
         explanation: `
             <p class="mb-4">
-                The 1st chart show top 5 low-income countries with the 
-                hoghest gap between electricity access and clean cooking fuel 
-                access for that year. The 2nd chart shows how access 
-                to clean cooking fuels has changed over time for those countries, 
-                allowing Jane to see trends and improvements.
+            When John changes the year on the slider, 
+            the first chart filters that selected year and only the countries with GDP per capita ≤ 2000. 
+            Within this filtered slice, we have subtracted access_to_electricity and access_to_clean_fuels_for_cooking to rank the countries
+            After sorting from this gap or difference, the chart shows the top five countries with the largest gap for that year. 
+            Then, their names are passed into the line chart, which then shows all historical rows for just those same countries 
+            and plot their clean-cooking trends. Note, 2nd chart always show the full time series for those specific countries.
             </p>
         `,
 
