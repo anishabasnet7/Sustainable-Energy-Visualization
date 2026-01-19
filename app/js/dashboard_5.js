@@ -1,9 +1,82 @@
+// dashboard_5.js
+
+// --- 1. THE MAP (Primary View) ---
+export function draw_energy_mix_map(data, year, mode, containerId, top10Names) {
+    const svg = d3.select(containerId);
+    const width = 800; const height = 400;
+    const tip = d3.select("#tooltip");
+    svg.selectAll("*").remove();
+    
+    // Mode A: Deep Grape Purple (from D4)
+    // Mode B: Deep Plum / Fuchsia (The "Similar" color)
+    const colorA = "#4c1d95"; 
+    const colorB = "#701a75";   
+    const topSet = new Set(top10Names);
+
+    const g = svg.append("g");
+    const projection = d3.geoNaturalEarth1().scale(130).translate([width/2, height/2]);
+    const path = d3.geoPath().projection(projection);
+
+    // Mode A Scale: Purples
+    // Mode B Scale: Red-Purples (interpolateRdPu)
+    const colorScale = mode === 'fossil' 
+        ? d3.scaleSequential(d3.interpolatePurples).domain([0, 100]) 
+        : d3.scaleSequential(d3.interpolateRdPu).domain([0, 100]); 
+
+    d3.json("https://raw.githubusercontent.com/holtzy/D3-graph-gallery/master/DATA/world.geojson").then(world => {
+        const yearData = data.filter(d => +d.year === year);
+        const dataMap = new Map(yearData.map(d => {
+            const fossil = +d.electricity_from_fuels || 0;
+            const total = fossil + (+d.electricity_from_nuclear || 0) + (+d.electricity_from_renewables || 0);
+            let val = mode === 'fossil' ? (total > 0 ? (fossil/total)*100 : 0) : (+d.low_carbon_electricity_percentage || 0);
+            return [d.country, val];
+        }));
+
+        g.selectAll("path")
+            .data(world.features)
+            .join("path")
+            .attr("d", path)
+            .attr("fill", d => {
+                let name = d.properties.name === "USA" ? "United States" : d.properties.name;
+                const v = dataMap.get(name);
+                return v !== undefined ? colorScale(v) : "#f1f5f9"; 
+            })
+            .attr("stroke", d => {
+                let name = d.properties.name === "USA" ? "United States" : d.properties.name;
+                return topSet.has(name) ? (mode === 'fossil' ? colorA : colorB) : "#cbd5e1";
+            })
+            .attr("stroke-width", d => {
+                let name = d.properties.name === "USA" ? "United States" : d.properties.name;
+                return topSet.has(name) ? 3 : 0.5;
+            })
+            .on("mouseover", function(event, d) {
+                let name = d.properties.name === "USA" ? "United States" : d.properties.name;
+                const v = dataMap.get(name);
+                d3.select(this).attr("stroke", "#000").attr("stroke-width", 1.5);
+
+                tip.transition().duration(100).style("opacity", 1);
+                tip.html(`
+                    <div class="font-bold border-b border-gray-300 mb-1" style="color: ${mode === 'fossil' ? '#7c3aed' : '#d946ef'}">${name}</div>
+                    <div class="text-xs">Intensity (${year}):</div>
+                    <div class="text-xl font-bold">${v !== undefined ? v.toFixed(1) + '%' : 'N/A'}</div>
+                    ${topSet.has(name) ? `<div class="mt-1 text-[10px] font-bold text-indigo-600">★ TOP PERFORMER</div>` : ''}
+                `);
+            })
+            .on("mousemove", (event) => tip.style("left", (event.pageX + 15) + "px").style("top", (event.pageY - 28) + "px"))
+            .on("mouseout", function(event, d) {
+                let name = d.properties.name === "USA" ? "United States" : d.properties.name;
+                d3.select(this)
+                    .attr("stroke", topSet.has(name) ? (mode === 'fossil' ? colorA : colorB) : "#cbd5e1")
+                    .attr("stroke-width", topSet.has(name) ? 3 : 0.5);
+                tip.transition().duration(100).style("opacity", 0);
+            });
+    });
+}
+
+// --- 2. CONTROLS & BARS ---
 export function fossil_vs_lowcarbon(csvPath, svgId) {
     d3.csv(csvPath).then(data => {
-        
-        //process Data
         data.forEach(d => {
-            d.country = d.country; 
             d.year = +d.year;
             d.fossil_val = +d.electricity_from_fuels || 0;
             d.nuclear_val = +d.electricity_from_nuclear || 0;
@@ -11,143 +84,63 @@ export function fossil_vs_lowcarbon(csvPath, svgId) {
             d.low_carbon_pct = +d.low_carbon_electricity_percentage || 0;
         });
 
-        const minYear = d3.min(data, d => d.year);
-        const maxYear = d3.max(data, d => d.year);
-        
-        let currentYear = maxYear;
-        let currentSort = 'fossil';
+        let currentYear = 2019;
+        let currentMode = 'fossil';
 
-        //UI
         const controls = d3.select("#slider-container");
-        
-        //clearing anything that might be there for issue 
-        controls.html("");
-        controls.attr("class", "mb-4 p-3 bg-gray-100 rounded border flex flex-wrap justify-center items-center gap-6");
-
-        //dropdown
-        const sortGroup = controls.append("div").attr("class", "flex items-center");
-        sortGroup.append("span").text("Sort by: ").style("font-weight", "bold").style("margin-right", "8px");
-        
-        const select = sortGroup.append("select")
-            .attr("class", "p-1 border rounded text-gray-700")
-            .on("change", function() {
-                currentSort = this.value;
-                updateChart();
-            });
-
-        select.append("option").text("Highest Fossil Dependence").attr("value", "fossil");
-        select.append("option").text("Leading in Low-Carbon").attr("value", "green");
-
-        //slider
-        const sliderGroup = controls.append("div").attr("class", "flex items-center");
-        sliderGroup.append("label").text("Year: ").style("font-weight", "bold").style("margin-right", "8px");
-        
-        const yearLabel = sliderGroup.append("span")
-            .text(maxYear)
-            .style("font-weight", "bold")
-            .style("color", "#4f46e5")
-            .style("min-width", "40px")
-            .style("margin-right", "10px");
-
-        sliderGroup.append("input")
-            .attr("type", "range")
-            .attr("min", minYear)
-            .attr("max", maxYear)
-            .attr("value", maxYear)
-            .attr("step", 1)
-            .style("width", "150px")
-            .style("cursor", "pointer")
-            .on("input", function() {
-                currentYear = +this.value;
-                yearLabel.text(currentYear);
-                updateChart();
-            });
+        controls.html(`
+            <div class="flex flex-col gap-3 bg-indigo-50 p-4 rounded-lg border border-indigo-200 shadow-sm">
+                <div class="flex justify-between items-center">
+                    <span class="font-bold text-indigo-800">Observation Year: <span id="year-disp" class="text-xl">2019</span></span>
+                    <select id="mode-toggle" class="bg-white border border-indigo-300 text-indigo-900 rounded px-2 py-1 outline-none text-sm font-bold">
+                        <option value="fossil">Fossil Dependency (Violet)</option>
+                        <option value="green">Low-Carbon Leaders (Fuchsia)</option>
+                    </select>
+                </div>
+                <input type="range" id="y-slider" min="2000" max="2019" value="2019" class="w-full h-2 bg-indigo-200 rounded-lg appearance-none cursor-pointer accent-indigo-600">
+            </div>
+        `);
 
         const svg = d3.select(svgId);
-        svg.selectAll("*").remove();
-
-        const width = parseInt(svg.style("width")) || 600;
-        const height = parseInt(svg.style("height")) || 500;
-        const margin = { top: 50, right: 30, bottom: 50, left: 160 };
-
+        const width = 600; const height = 400;
+        const margin = { top: 20, right: 30, bottom: 40, left: 150 };
         const x = d3.scaleLinear().domain([0, 100]).range([margin.left, width - margin.right]);
         const y = d3.scaleBand().range([margin.top, height - margin.bottom]).padding(0.3);
 
-        const xAxisG = svg.append("g").attr("transform", `translate(0,${height - margin.bottom})`);
-        const yAxisG = svg.append("g").attr("transform", `translate(${margin.left},0)`);
-        
-        const title = svg.append("text")
-            .attr("x", width / 2)
-            .attr("y", margin.top / 2)
-            .attr("text-anchor", "middle")
-            .attr("font-weight", "bold");
-
-        const tooltip = d3.select("#tooltip");
-
-        //legend
-        const legendX = width - margin.right - 150;
-        const legendY = margin.top - 40;
-        svg.append("rect").attr("x", legendX).attr("y", legendY).attr("width", 12).attr("height", 12).attr("fill", "#ef4444");
-        svg.append("text").attr("x", legendX + 20).attr("y", legendY + 10).text("Fossil Fuel %").attr("font-size", "12px").attr("alignment-baseline", "middle");
-        svg.append("rect").attr("x", legendX).attr("y", legendY + 20).attr("width", 12).attr("height", 12).attr("fill", "#22c55e");
-        svg.append("text").attr("x", legendX + 20).attr("y", legendY + 30).text("Low Carbon %").attr("font-size", "12px").attr("alignment-baseline", "middle");
-
-        function updateChart() {
-            const yearData = data.filter(d => d.year === currentYear && (d.fossil_val > 0 || d.low_carbon_pct > 0));
-
+        function update() {
+            const yearData = data.filter(d => d.year === currentYear);
             yearData.forEach(d => {
-                const totalGen = d.fossil_val + d.nuclear_val + d.renewables_val;
-                d.fossil_pct = totalGen > 0 ? (d.fossil_val / totalGen) * 100 : 0;
+                const total = d.fossil_val + d.nuclear_val + d.renewables_val;
+                d.fossil_pct = total > 0 ? (d.fossil_val / total) * 100 : 0;
             });
 
-            let top10;
-            if (currentSort === 'fossil') {
-                top10 = yearData.sort((a, b) => b.fossil_pct - a.fossil_pct).slice(0, 10);
-                title.text(`Highest Fossil Fuel Dependence (${currentYear})`);
-            } else {
-                top10 = yearData.sort((a, b) => b.low_carbon_pct - a.low_carbon_pct).slice(0, 10);
-                title.text(`Leading in Low-Carbon Energy (${currentYear})`);
-            }
+            let top10 = (currentMode === 'fossil') 
+                ? yearData.sort((a, b) => b.fossil_pct - a.fossil_pct).slice(0, 10)
+                : yearData.sort((a, b) => b.low_carbon_pct - a.low_carbon_pct).slice(0, 10);
 
-            y.domain(top10.map(d => d.country));
-            const barHeight = y.bandwidth() / 2;
+            const topNames = top10.map(d => d.country);
 
-            yAxisG.transition().duration(800).call(d3.axisLeft(y));
-            xAxisG.transition().duration(800).call(d3.axisBottom(x).ticks(5).tickFormat(d => d + "%"));
+            svg.selectAll("*").remove();
+            y.domain(topNames);
+            svg.append("g").attr("transform", `translate(0,${height - margin.bottom})`).call(d3.axisBottom(x).tickFormat(d => d + "%"));
+            svg.append("g").attr("transform", `translate(${margin.left},0)`).call(d3.axisLeft(y));
 
-            //red bars
-            svg.selectAll(".fossil-bar").data(top10, d => d.country)
-                .join(
-                    enter => enter.append("rect").attr("class", "fossil-bar").attr("x", margin.left).attr("fill", "#ef4444").attr("width", 0),
-                    update => update,
-                    exit => exit.remove()
-                )
-                .attr("height", barHeight)
-                .transition().duration(800)
-                .attr("y", d => y(d.country))
-                .attr("width", d => x(d.fossil_pct) - margin.left);
+            svg.selectAll(".bar").data(top10).join("rect")
+                .attr("x", margin.left).attr("y", d => y(d.country)).attr("height", y.bandwidth())
+                // Fossil: Violet (#7c3aed) | Low-Carbon: Fuchsia (#d946ef)
+                .attr("fill", currentMode === 'fossil' ? "#7c3aed" : "#d946ef")
+                .attr("width", d => x(currentMode === 'fossil' ? d.fossil_pct : d.low_carbon_pct) - margin.left);
 
-            //green bars
-            svg.selectAll(".lowcarbon-bar").data(top10, d => d.country)
-                .join(
-                    enter => enter.append("rect").attr("class", "lowcarbon-bar").attr("x", margin.left).attr("fill", "#22c55e").attr("width", 0),
-                    update => update,
-                    exit => exit.remove()
-                )
-                .attr("height", barHeight)
-                .transition().duration(800)
-                .attr("y", d => y(d.country) + barHeight)
-                .attr("width", d => x(d.low_carbon_pct) - margin.left);
-
-            //tooltip
-            svg.selectAll(".fossil-bar, .lowcarbon-bar")
-                .on("mouseover", (event, d) => {
-                    tooltip.style("opacity", 1).html(`<strong>${d.country}</strong><br>Fossil: ${d.fossil_pct.toFixed(1)}%<br>Low-Carbon: ${d.low_carbon_pct.toFixed(1)}%`);
-                })
-                .on("mousemove", (event) => tooltip.style("left", (event.pageX+10)+"px").style("top", (event.pageY-20)+"px"))
-                .on("mouseout", () => tooltip.style("opacity", 0));
+            draw_energy_mix_map(data, currentYear, currentMode, "#svg-slot-1", topNames);
         }
 
-        updateChart();
+        document.getElementById('mode-toggle').addEventListener('change', (e) => { currentMode = e.target.value; update(); });
+        document.getElementById('y-slider').addEventListener('input', (e) => { 
+            currentYear = +e.target.value; 
+            document.getElementById('year-disp').innerText = currentYear;
+            update(); 
+        });
+
+        update();
     });
 }

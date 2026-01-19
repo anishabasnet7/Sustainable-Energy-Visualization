@@ -1,8 +1,8 @@
 import { draw_overall_co2_timeseries, draw_top10_co2_emiters } from './dashboard_1.js';
 import { draw_germany_renewables_timeseries } from './dashboard_2.js'
 import { draw_correlation_scatter } from './dashboard_3.js'
-import { electricity_vs_cleancooking, clean_cooking_trend } from "./dashboard_4.js";
-import {fossil_vs_lowcarbon} from "./dashboard_5.js";
+import { electricity_vs_cleancooking, draw_access_gap_map, draw_historical_trend } from "./dashboard_4.js";
+import {fossil_vs_lowcarbon, draw_energy_mix_map} from "./dashboard_5.js";
 
 
 const dashboardConfigs = {
@@ -67,41 +67,21 @@ const dashboardConfigs = {
             data_path: '../../data/processed_data.csv'
         }]
     },
-    'dashboard-4': {
-        title: 'Energy Access Assessment for Low Income Countries',
-        explanationTitle: 'Analysis and Interpretation: Line Chart & Bar Chart',
-        explanation: `
-            <p class="mb-4">
-            When John changes the year on the slider, 
-            the first chart filters that selected year and only the countries with GDP per capita ≤ 2000. 
-            Within this filtered slice, we have subtracted access_to_electricity and access_to_clean_fuels_for_cooking to rank the countries
-            After sorting from this gap or difference, the chart shows the top five countries with the largest gap for that year. 
-            Then, their names are passed into the line chart, which then shows all historical rows for just those same countries 
-            and plot their clean-cooking trends. Note, 2nd chart always show the full time series for those specific countries.
-            </p>
-        `,
-
-        charts: [{ 
-            title: 'User Story4: Electricity Access vs Clean Cooking Access (2000–2020)',
-            drawFunction: (data_path, svgId) => electricity_vs_cleancooking(data_path, svgId)
-            .then(top10Countries => {
-                clean_cooking_trend(data_path, '#svg-slot-2', top10Countries);
-            }),
-            data_path: '../../data/processed_data.csv'
-        }, { 
-            title: 'Clean Cooking Fuel Access Trend',
-            drawFunction: (data_path, svgId) => { 
-            const svg = d3.select(svgId);
-            svg.selectAll("*").remove();
-            svg.append("text")
-               .attr("x", parseInt(svg.style("width"))/2)
-               .attr("y", parseInt(svg.style("height"))/2)
-               .attr("text-anchor", "middle")
-               .attr("fill", "#999");
-        },
-            data_path: '../../data/processed_data.csv'
-        }]
-    },
+   'dashboard-4': {
+    title: 'Gap & Trend Analysis: Access Inequality',
+    explanationTitle: 'Dynamic Workflow Analysis',
+    explanation: `
+        <p>This dashboard uses a three-step filtering process:
+        <br>1. <strong>Spatial Context:</strong> The map shows the global Access Gap (Electricity - Clean Cooking).
+        <br>2. <strong>Identification:</strong> The slider selects the Top 5 countries with the highest gap and GDP ≤ 2000 for that year.
+        <br>3. <strong>Historical Context:</strong> Once identified, we query the <em>entire 20-year history</em> for those 5 countries to see if their clean-cooking access is improving.</p>
+    `,
+    charts: [
+        { title: 'Global Access Gap (Purple) & Top 5 Highlighted', drawFunction: () => {}, data_path: '../../data/processed_data.csv' },
+        { title: 'Top 5 Gaps (Selected Year)', drawFunction: (path, id) => electricity_vs_cleancooking(path, id), data_path: '../../data/processed_data.csv' },
+        { title: 'Clean Cooking Historical Progress', drawFunction: () => {}, data_path: '../../data/processed_data.csv' }
+    ]
+},      
     'dashboard-5': {
         title: 'User Story5: John Smith - Energy Analyst',
         explanationTitle: 'Analysis and Interpretation: Bar Chart',
@@ -116,9 +96,17 @@ const dashboardConfigs = {
             </p>
         `,
 
-        charts: [{ 
-            title: ' Trend 2000-2019',
-            drawFunction: fossil_vs_lowcarbon,
+        charts: [
+            { 
+            title: 'Map: Geographical Location of Top 10 Countries',
+             drawFunction: (path, id) => {
+                d3.csv(path).then(data => draw_energy_mix_map(data, 2019, 'fossil', id));
+            }, 
+            data_path: '../../data/processed_data.csv' 
+        },
+        { 
+            title: 'Top Performers Comparison',
+            drawFunction: fossil_vs_lowcarbon, 
             data_path: '../../data/processed_data.csv'
         }]
     },

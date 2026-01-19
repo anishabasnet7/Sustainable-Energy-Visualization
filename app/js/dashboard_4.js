@@ -1,181 +1,167 @@
-export function electricity_vs_cleancooking(csvPath, svgId) {
-    return d3.csv(csvPath).then(data => {
-        data.forEach(d => {
-            d.access_to_electricity = +d.access_to_electricity;
-            d.access_to_clean_fuels_for_cooking = +d.access_to_clean_fuels_for_cooking;
-            d.gdp_per_capita = +d.gdp_per_capita;
-            d.year = +d.year;
-        });
 
-        const latestYear = d3.max(data, d => d.year);
-        let currentYear = latestYear;
+//Spatial View (World Map)
+export function draw_access_gap_map(fullData, year, containerId, top5Names) {
+    const svg = d3.select(containerId);
+    const width = 800; const height = 400;
+    const tip = d3.select("#tooltip"); 
+    svg.selectAll("*").remove();
 
-        const svg = d3.select(svgId);
-        svg.selectAll("*").remove();
+    const g = svg.append("g");
+    const projection = d3.geoNaturalEarth1().scale(130).translate([width / 2, height / 2]);
+    const path = d3.geoPath().projection(projection);
+    
+    // Purple for Access Gap intensity
+    const colorScale = d3.scaleSequential(d3.interpolatePurples).domain([0, 80]);
+    const topSet = new Set(top5Names);
 
-        const width = parseInt(svg.style("width")) || 600;
-        const height = parseInt(svg.style("height")) || 400;
-        const margin = { top: 40, right: 50, bottom: 40, left: 150 };
+    d3.json("https://raw.githubusercontent.com/holtzy/D3-graph-gallery/master/DATA/world.geojson").then(world => {
+        const yearData = fullData.filter(d => +d.year === year);
+        const dataMap = new Map(yearData.map(d => [
+            d.country, 
+            (+d.access_to_electricity || 0) - (+d.access_to_clean_fuels_for_cooking || 0)
+        ]));
 
-        const x = d3.scaleLinear().range([margin.left, width - margin.right]);
-        const y = d3.scaleBand().range([margin.top, height - margin.bottom]).padding(0.2);
+        g.selectAll("path")
+            .data(world.features)
+            .join("path")
+            .attr("d", path)
+            .attr("fill", d => {
+                let name = (d.properties.name === "USA") ? "United States" : d.properties.name;
+                const gap = dataMap.get(name);
+                return (gap !== undefined && gap > 0) ? colorScale(gap) : "#f1f5f9";
+            })
+            .attr("stroke", d => {
+                let name = (d.properties.name === "USA") ? "United States" : d.properties.name;
+                return topSet.has(name) ? "#4c1d95" : "#cbd5e1"; //thick dark purple for top 5
+            })
+            .attr("stroke-width", d => {
+                let name = (d.properties.name === "USA") ? "United States" : d.properties.name;
+                return topSet.has(name) ? 2 : 0.5;
+            })
+            .style("cursor", "pointer")
+             .on("mouseover", function(event, d) {
+                let name = (d.properties.name === "USA") ? "United States" : d.properties.name;
+                const gap = dataMap.get(name);
+                
+                d3.select(this).attr("stroke", "#000").attr("stroke-width", 1.5);
 
-        //axes containers
-        svg.append("g").attr("class", "x-axis").attr("transform", `translate(0,${height - margin.bottom})`);
-        svg.append("g").attr("class", "y-axis").attr("transform", `translate(${margin.left},0)`);
+                tip.transition().duration(100).style("opacity", 1);
+                tip.html(`
+                    <div class="font-bold border-b border-gray-600 mb-1">${name}</div>
+                    <div>Year: ${year}</div>
+                    <div>Access Gap: ${gap !== undefined ? gap.toFixed(1) + '%' : 'No Data'}</div>
+                    ${topSet.has(name) ? '<div class="text-purple-400 font-bold mt-1">★ In Top 5 Gap</div>' : ''}
+                `);
+            })
+            .on("mousemove", function(event) {
+                tip.style("left", (event.pageX + 15) + "px")
+                   .style("top", (event.pageY - 28) + "px");
+            })
+            .on("mouseout", function(event, d) {
+                let name = (d.properties.name === "USA") ? "United States" : d.properties.name;
+                d3.select(this)
+                    .attr("stroke", topSet.has(name) ? "#4c1d95" : "#cbd5e1")
+                    .attr("stroke-width", topSet.has(name) ? 2 : 0.5);
 
-        svg.append("text")
-            .attr("x", width / 2)
-            .attr("y", height - 5)
-            .attr("text-anchor", "middle")
-            .text("Gap: Electricity Access - Clean Cooking Access (%)");
-
-        function updateBars(year) {
-            //filtering the data
-            const lowIncomeData = data.filter(d => d.gdp_per_capita <= 2000 && d.year === year);
-            lowIncomeData.forEach(d => d.gap = d.access_to_electricity - d.access_to_clean_fuels_for_cooking);
-            
-            //sorting and slicing
-            const top05 = lowIncomeData.sort((a, b) => b.gap - a.gap).slice(0, 5);
-
-            //updating the scale
-            const maxGap = d3.max(top05, d => d.gap) || 0; //prevent NaN if empty
-            x.domain([0, maxGap]);
-            y.domain(top05.map(d => d.country));
-
-            //update
-            svg.select(".x-axis").transition().duration(500).call(d3.axisBottom(x));
-            svg.select(".y-axis").transition().duration(500).call(d3.axisLeft(y));
-            
-            //using specifc ".bar" to prevent plot not shwoing issue
-            const bars = svg.selectAll("rect.bar")
-                .data(top05, d => d.country);
-
-            bars.join(
-                enter => enter.append("rect")
-                    .attr("class", "bar")
-                    .attr("x", margin.left)
-                    .attr("y", d => y(d.country))
-                    .attr("height", y.bandwidth())
-                    .attr("fill", "#dc2626")
-                    .attr("width", 0) 
-                    .call(enter => enter.transition().duration(500)
-                        .attr("width", d => Math.max(0, x(d.gap) - margin.left))
-                    ),
-                update => update.call(update => update.transition().duration(500)
-                    .attr("y", d => y(d.country))
-                    .attr("width", d => Math.max(0, x(d.gap) - margin.left))
-                ),
-                //removing the bars not in top 5
-                exit => exit.remove()
-            );
-
-            //updating labels
-            const labels = svg.selectAll(".label")
-                .data(top05, d => d.country);
-
-            labels.join(
-                enter => enter.append("text")
-                    .attr("class", "label")
-                    .attr("y", d => y(d.country) + y.bandwidth() / 2)
-                    .attr("alignment-baseline", "middle")
-                    .attr("fill", "#333")
-                    .attr("x", d => x(d.gap) + 5) 
-                    .text(d => d.gap.toFixed(1) + "%")
-                    .attr("opacity", 0) //fade in
-                    .call(enter => enter.transition().duration(500).attr("opacity", 1)),
-                update => update.call(update => update.transition().duration(500)
-                    .attr("x", d => x(d.gap) + 5)
-                    .attr("y", d => y(d.country) + y.bandwidth() / 2)
-                    .text(d => d.gap.toFixed(1) + "%")
-                ),
-                exit => exit.remove()
-            );
-
-            return top05.map(d => d.country);
-        }
-
-        //slider
-        const sliderContainer = d3.select("#slider-container");
-        sliderContainer.html(`
-            <label for="year-slider">Year:</label>
-            <input type="range" id="year-slider" min="${d3.min(data, d => d.year)}" max="${latestYear}" step="1" value="${latestYear}">
-            <span id="year-label">${latestYear}</span>
-        `);
-
-        const slider = document.getElementById('year-slider');
-        const yearLabel = document.getElementById('year-label');
-        
-        slider.addEventListener('input', () => {
-            currentYear = +slider.value;
-            yearLabel.textContent = currentYear;
-            const top05Countries = updateBars(currentYear);
-            clean_cooking_trend(data, "#svg-slot-2", top05Countries);
-        });
-
-        const top05Countries = updateBars(currentYear);
-        clean_cooking_trend(data, "#svg-slot-2", top05Countries); //taking the reloaded data instea dof the new one
-
-        return top05Countries;
+                tip.transition().duration(100).style("opacity", 0);
+            })
+            .on("click", (event, d) => {
+                let name = (d.properties.name === "USA") ? "United States" : d.properties.name;   
+                 });
     });
 }
 
-export function clean_cooking_trend(fullData, svgId, top05Countries) {
-    let filtered = fullData.filter(d => top05Countries.includes(d.country));
-    //removing invalid data to prevent broken lines
-    filtered = filtered.filter(d => !isNaN(d.access_to_clean_fuels_for_cooking) && !isNaN(d.year));
+//Controller and Bar Chart
+export function electricity_vs_cleancooking(csvPath, svgId) {
+    d3.csv(csvPath).then(data => {
+        const latestYear = d3.max(data, d => +d.year);
+        let currentYear = latestYear;
 
+        //Slider UI
+        const sliderDiv = d3.select("#slider-container");
+        sliderDiv.html(`
+            <div class="flex flex-col gap-2 bg-indigo-50 p-4 rounded-lg border border-indigo-200">
+                <div class="flex justify-between items-center">
+                    <span class="font-bold text-indigo-800">Year: <span id="year-val" class="text-xl">${latestYear}</span></span>
+                    <span class="text-xs text-indigo-600 bg-white px-2 py-1 rounded border">Filtering: GDP ≤ 2000</span>
+                </div>
+                <input type="range" id="year-slider" min="2000" max="${latestYear}" value="${latestYear}" class="w-full h-2 bg-indigo-200 rounded-lg appearance-none cursor-pointer">
+            </div>
+        `);
+
+        const svg = d3.select(svgId);
+        const width = 600; const height = 300;
+        const margin = { top: 20, right: 30, bottom: 40, left: 150 };
+        const x = d3.scaleLinear().range([margin.left, width - margin.right]);
+        const y = d3.scaleBand().range([margin.top, height - margin.bottom]).padding(0.2);
+
+        function runLogic() {
+            //Filter slice (Year + GDP)
+            const slice = data.filter(d => +d.year === currentYear && +d.gdp_per_capita <= 2000);
+            
+            //Gap column for this slice
+            slice.forEach(d => {
+                d.gap = (+d.access_to_electricity || 0) - (+d.access_to_clean_fuels_for_cooking || 0);
+            });
+
+            //Rank and keep Top 5
+            const top5 = slice.sort((a, b) => b.gap - a.gap).slice(0, 5);
+            const top5Names = top5.map(d => d.country);
+
+            //Update Bar Chart (Ranking)
+            svg.selectAll("*").remove();
+            x.domain([0, 100]);
+            y.domain(top5Names);
+            svg.append("g").attr("transform", `translate(0,${height - margin.bottom})`).call(d3.axisBottom(x));
+            svg.append("g").attr("transform", `translate(${margin.left},0)`).call(d3.axisLeft(y));
+            svg.selectAll(".bar").data(top5).join("rect")
+                .attr("x", margin.left).attr("y", d => y(d.country)).attr("height", y.bandwidth())
+                .attr("fill", "#7c3aed").attr("width", d => x(d.gap) - margin.left);
+
+            //Pass names to Spatial Map (Slot 1)
+            draw_access_gap_map(data, currentYear, "#svg-slot-1", top5Names);
+
+            //Pass names to Trend Line (Slot 3) - Full Data
+            draw_historical_trend(data, "#svg-slot-3", top5Names);
+            document.getElementById('title-slot-3').textContent = `Historical Clean Cooking Trend: Top 5 of ${currentYear}`;
+        }
+
+        document.getElementById('year-slider').addEventListener('input', function() {
+            currentYear = +this.value;
+            document.getElementById('year-val').textContent = currentYear;
+            runLogic();
+        });
+
+        runLogic();
+    });
+}
+
+//Historical Trend (Full Time Series)
+export function draw_historical_trend(fullData, svgId, top5Names) {
     const svg = d3.select(svgId);
     svg.selectAll("*").remove();
+    const width = 600; const height = 350;
+    const margin = { top: 30, right: 120, bottom: 50, left: 60 };
 
-    const width = parseInt(svg.style("width")) || 600;
-    const height = parseInt(svg.style("height")) || 400;
-    const margin = { top: 40, right: 120, bottom: 50, left: 60 };
+    //ALL historical rows for the selected countries
+    const history = fullData.filter(d => top5Names.includes(d.country));
+    
+    const x = d3.scaleLinear().domain(d3.extent(fullData, d => +d.year)).range([margin.left, width - margin.right]);
+    const y = d3.scaleLinear().domain([0, 100]).range([height - margin.bottom, margin.top]);
 
-    if (filtered.length === 0) return;
+    svg.append("g").attr("transform", `translate(0,${height - margin.bottom})`).call(d3.axisBottom(x).tickFormat(d3.format("d")));
+    svg.append("g").attr("transform", `translate(${margin.left},0)`).call(d3.axisLeft(y));
 
-    const x = d3.scaleLinear()
-        .domain(d3.extent(filtered, d => d.year))
-        .range([margin.left, width - margin.right]);
+    const color = d3.scaleOrdinal(d3.schemeTableau10).domain(top5Names);
+    const groups = d3.group(history, d => d.country);
 
-    const y = d3.scaleLinear()
-        .domain([0, 100])
-        .range([height - margin.bottom, margin.top]);
+    groups.forEach((values, key) => {
+        values.sort((a, b) => +a.year - +b.year);
+        svg.append("path").datum(values).attr("fill", "none").attr("stroke", color(key)).attr("stroke-width", 2.5)
+           .attr("d", d3.line().x(d => x(+d.year)).y(d => y(+d.access_to_clean_fuels_for_cooking || 0)));
 
-    svg.append("g")
-        .attr("transform", `translate(0,${height - margin.bottom})`)
-        .call(d3.axisBottom(x).tickFormat(d3.format("d")));
-
-    svg.append("g")
-        .attr("transform", `translate(${margin.left},0)`)
-        .call(d3.axisLeft(y));
-
-    const color = d3.scaleOrdinal().domain(top05Countries).range(d3.schemeSet2);
-    const countries = d3.group(filtered, d => d.country);
-
-    countries.forEach((values, key) => {
-        values.sort((a, b) => a.year - b.year); //sorting years
-
-        svg.append("path")
-            .datum(values)
-            .attr("fill", "none")
-            .attr("stroke", color(key))
-            .attr("stroke-width", 2)
-            .attr("d", d3.line()
-                .defined(d => !isNaN(d.access_to_clean_fuels_for_cooking)) //skip gap
-                .x(d => x(d.year))
-                .y(d => y(d.access_to_clean_fuels_for_cooking))
-            );
-
-        const lastPoint = values[values.length - 1];
-        if (lastPoint) {
-            svg.append("text")
-                .attr("x", x(lastPoint.year) + 5)
-                .attr("y", y(lastPoint.access_to_clean_fuels_for_cooking))
-                .text(key)
-                .attr("alignment-baseline", "middle")
-                .attr("fill", color(key))
-                .style("font-size", "12px");
-        }
+        const last = values[values.length - 1];
+        svg.append("text").attr("x", x(+last.year) + 5).attr("y", y(+last.access_to_clean_fuels_for_cooking || 0))
+           .text(key).attr("fill", color(key)).style("font-size", "11px").attr("alignment-baseline", "middle");
     });
 }
