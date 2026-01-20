@@ -47,7 +47,7 @@
             
             <div id="visualization-container" class="space-y-12">
             
-            <!-- Dashboard 4 Specific Controls (Hidden by default) -->
+            <!-- Dashboard 4 Specific -->
             <div id="dashboard-4-extra-controls" class="hidden bg-indigo-50 p-4 rounded-xl mb-6 border border-indigo-100 flex flex-col md:flex-row items-center justify-between gap-4">
                 <div class="flex items-center gap-4 w-full md:w-2/3">
                     <label class="font-bold text-indigo-900 whitespace-nowrap">Select Year: <span id="year-display" class="text-indigo-600">2019</span></label>
@@ -58,6 +58,18 @@
                     <span id="poor-country-count" class="text-xl font-black text-indigo-700 ml-2">0</span>
                 </div>
             </div>
+
+<!-- Dashboard 5 Specific  -->
+<div id="dashboard-5-extra-controls" class="hidden bg-emerald-50 p-4 rounded-xl mb-6 border border-emerald-100 flex flex-col md:flex-row items-center justify-between gap-4">
+    <div class="flex items-center gap-4 w-full md:w-2/3">
+        <label class="font-bold text-emerald-900 whitespace-nowrap">Select Year: <span id="year-display-5" class="text-emerald-600">2019</span></label>
+        <input type="range" id="year-slider-5" min="2000" max="2020" value="2019" class="w-full h-2 bg-emerald-200 rounded-lg appearance-none cursor-pointer accent-emerald-600">
+    </div>
+    <div class="bg-white px-4 py-2 rounded-lg shadow-sm border border-emerald-200">
+        <span class="text-sm text-gray-500 uppercase font-bold tracking-tighter">Viewing Country:</span>
+        <span id="selected-country-5" class="text-xl font-black text-emerald-700 ml-2">Global Top 10</span>
+    </div>
+</div>
                 
                 <!-- Tooltip -->
                 <div id="tooltip" class="fixed p-3 bg-gray-900 text-white rounded shadow-2xl pointer-events-none opacity-0 z-50 text-sm border border-indigo-400"></div>

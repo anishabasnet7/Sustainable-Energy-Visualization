@@ -2,12 +2,14 @@ import { draw_overall_co2_timeseries, draw_top10_co2_emiters } from './dashboard
 import { draw_germany_renewables_timeseries } from './dashboard_2.js';
 import { draw_correlation_scatter } from './dashboard_3.js';
 import { electricity_vs_cleancooking } from "./dashboard_4.js";
-import { fossil_vs_lowcarbon } from "./dashboard_5.js";
+import { draw_fossil_vs_lowcarbon } from "./dashboard_5.js";
 import { draw_landing_map } from './landing_map.js';
 
 let selectedD4Year = 2019;
 let currentMapMode = "none"; 
 let currentMapYear = 2019;
+let selectedD5Year = 2019;
+let selectedD5Country = null;
 const DATA_PATH = '../../data/processed_data.csv';
 
 const dashboardConfigs = {
@@ -76,14 +78,23 @@ const dashboardConfigs = {
         ]
     },
     'dashboard-5': {
-        title: 'Energy Transition: Fossil vs Low-Carbon',
-        explanationTitle: 'Lead vs Dependency Analysis',
-        explanation: `<p>Identify which countries are leading the green energy transition.</p>`,
-        charts: [
-            { title: 'Energy Mix Map', drawFunction: (path, id) => draw_landing_map(path, id, 'dashboard-5', currentMapYear), data_path: DATA_PATH },
-            { title: 'Fossil vs Low-Carbon Performers', drawFunction: fossil_vs_lowcarbon, data_path: DATA_PATH }
-        ]
-    },
+    title: 'Energy Transition: Fossil vs Low-Carbon',
+    explanationTitle: 'Transition Leadership Analysis',
+    explanation: `<p>Use the map to select a country and the slider to change the year. The chart below shows the electricity mix: Red represents Fossil Fuels and Green represents Low-Carbon (Renewables + Nuclear).</p>`,
+    charts: [
+        { 
+            title: 'Interactive Transition Atlas (Click a country)', 
+            drawFunction: (path, id) => draw_interactive_atlas_d5(path, id), 
+            data_path: DATA_PATH 
+        },
+        { 
+            title: 'Electricity Mix Comparison', 
+            drawFunction: (path, id) => draw_fossil_vs_lowcarbon(path, id, selectedD5Year, selectedD5Country), 
+            data_path: DATA_PATH 
+        }
+    ]
+},
+    
 };
 
 /* Clears the UI slots before loading new charts */
@@ -121,6 +132,20 @@ function loadDashboard(id) {
         d4Controls.classList.add('hidden');
     }    
 
+// Handle Dashboard 5 Slider Visibility
+const d5Controls = document.getElementById('dashboard-5-extra-controls');
+if (id === 'dashboard-5') {
+    d5Controls.classList.remove('hidden');
+    document.getElementById('year-slider-5').oninput = function() {
+        selectedD5Year = +this.value;
+        document.getElementById('year-display-5').textContent = selectedD5Year;
+        draw_fossil_vs_lowcarbon(DATA_PATH, "#svg-slot-2", selectedD5Year, selectedD5Country);
+    };
+} else {
+    d5Controls.classList.add('hidden');
+}
+
+
     //draw the charts defined in the config
     config.charts.forEach((chartConfig, index) => {
         const slotNumber = index + 1;
@@ -130,6 +155,39 @@ function loadDashboard(id) {
             document.getElementById(`title-slot-${slotNumber}`).textContent = chartConfig.title;
             chartConfig.drawFunction(chartConfig.data_path, `#svg-slot-${slotNumber}`)
         }
+    });
+}
+
+// Implement the map function in main.js
+function draw_interactive_atlas_d5(csvPath, containerId) {
+    const svg = d3.select(containerId);
+    const width = 1000; const height = 450;
+    const tip = d3.select("#tooltip");
+    svg.selectAll("*").remove();
+
+    const projection = d3.geoNaturalEarth1().scale(170).translate([width / 2, height / 2]);
+    const path = d3.geoPath().projection(projection);
+
+    d3.json("https://raw.githubusercontent.com/holtzy/D3-graph-gallery/master/DATA/world.geojson").then(world => {
+        svg.append("g").selectAll("path")
+            .data(world.features)
+            .join("path")
+            .attr("d", path)
+            .attr("fill", "#e2e8f0")
+            .attr("stroke", "#94a3b8")
+            .style("cursor", "pointer")
+            .on("mouseover", function() { d3.select(this).attr("fill", "#6ee7b7"); })
+            .on("mouseout", function() { d3.select(this).attr("fill", "#e2e8f0"); })
+            .on("click", (event, d) => {
+                // This matches the name mapping logic from your landing_map.js
+                const countryName = d.properties.name === "United States of America" ? "United States" : d.properties.name;
+                
+                selectedD5Country = countryName;
+                document.getElementById('selected-country-5').textContent = countryName;
+                
+                // Redraw ONLY the bar chart slot
+                draw_fossil_vs_lowcarbon(DATA_PATH, "#svg-slot-2", selectedD5Year, selectedD5Country);
+            });
     });
 }
 
