@@ -17,7 +17,7 @@ function draw_interactive_atlas(fullData, year, containerId, onCountrySelect) {
     const tip = d3.select("#tooltip");
     svg.selectAll("*").remove();
 
-    // The Atlas colors from your homepage
+    // Atlas colors from homepage
     const atlasColors = ["#fef3c7", "#d1fae5", "#fee2e2", "#e0e7ff", "#f3e8ff", "#ffedd5"];
     const colorScale = d3.scaleOrdinal(atlasColors);
     const projection = d3.geoNaturalEarth1().scale(175).translate([width / 2, height / 2.2]);
@@ -38,7 +38,7 @@ function draw_interactive_atlas(fullData, year, containerId, onCountrySelect) {
                 const cleanName = getCleanName(d.properties.name);
                 const stats = dataMap.get(cleanName);
 
-                // JOHN'S FEATURE: Highlight only countries with GDP per capita <= 2000
+                // Highlight only countries with GDP per capita <= 2000
                 if (stats && +stats.gdp_per_capita <= 2000) {
                     return colorScale(i); 
                 }
@@ -136,7 +136,7 @@ function draw_gap_comparison(data, countryName, svgId, year) {
     const y = d3.scaleBand().domain(metrics.map(m => m.name)).range([margin.top, height - margin.bottom]).padding(0.4);
 
     svg.append("text").attr("x", width/2).attr("y", 30).attr("text-anchor", "middle").attr("class", "text-xl font-black")
-       .text(`Access Gap Analysis: ${countryName} (${year})`);
+       .text(`Access Gap: ${countryName} (${year})`);
 
     svg.selectAll("rect").data(metrics).join("rect")
         .attr("x", margin.left).attr("y", d => y(d.name)).attr("width", d => x(d.val) - margin.left).attr("height", y.bandwidth())
@@ -151,7 +151,7 @@ function draw_gap_comparison(data, countryName, svgId, year) {
     svg.append("g").attr("transform", `translate(${margin.left},0)`).call(d3.axisLeft(y));
 }
 
-// 5. TREND LINE: Progress in Clean Cooking
+//in Clean Cooking
 function draw_historical_trend(data, countryName, svgId) {
     const svg = d3.select(svgId);
     svg.selectAll("*").remove();
@@ -170,7 +170,7 @@ function draw_historical_trend(data, countryName, svgId) {
     svg.append("path").datum(history).attr("fill", "none").attr("stroke", "#9333ea").attr("stroke-width", 3).attr("d", line);
     
     svg.append("text").attr("x", width/2).attr("y", 30).attr("text-anchor", "middle").attr("class", "text-xl font-black")
-       .text(`Historical Progress: Clean Cooking Access in ${countryName}`);
+       .text(`Trend: Clean Cooking Access in ${countryName}`);
 
     svg.append("g").attr("transform", `translate(0,${height - margin.bottom})`).call(d3.axisBottom(x).tickFormat(d3.format("d")));
     svg.append("g").attr("transform", `translate(${margin.left},0)`).call(d3.axisLeft(y).tickFormat(d => d + "%"));

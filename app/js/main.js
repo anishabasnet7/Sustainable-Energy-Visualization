@@ -14,12 +14,12 @@ const DATA_PATH = '../../data/processed_data.csv';
 
 const dashboardConfigs = {
     'dashboard-home': {
-        title: 'Global Energy Transition: A Spatial Overview',
+        title: 'Global Energy: Spatial Overview',
         explanationTitle: 'Project Introduction',
-        explanation: `<p class="text-lg">Select a User Story from the dropdown above to begin the analysis.</p>`,
+        explanation: `<p class="text-lg">Select a dashboard (user story) from the dropdown above to view the analysis.</p>`,
         charts: [
             { 
-                title: 'World Data Overview', 
+                title: 'Atlas Map', 
                 drawFunction: (path, id) => draw_landing_map(path, id, currentMapMode, currentMapYear), 
                 data_path: DATA_PATH 
             }
@@ -68,27 +68,28 @@ const dashboardConfigs = {
             data_path: DATA_PATH }]
     },
    'dashboard-4': {
-        title: 'The Access Gap (GDP ≤ 2000)',
-        explanationTitle: 'John\'s Analysis: Clean Cooking vs Electricity',
-        explanation: `<p>This chart shows the top 5 countries where the gap between electricity and clean cooking is largest.</p>`,
+        title: 'Access Gap (GDP ≤ 2000)',
+        explanationTitle: 'Jane Doe\'s Analysis: Clean Cooking vs Electricity',
+        explanation: `<p>This map only highlights the countries with GDP less than 2000. In first, the visual of country with highest GDP difference is displayed and when we select the country, we can see the visual of the selected country. The linechart shows the trend over the years.</p>`,
         charts: [
-            { title: 'Interactive Atlas & Access Gap Analysis', 
+            { title: 'Interactive Map (Click a country)', 
                 drawFunction: (path, id) => electricity_vs_cleancooking(path, id), 
                 data_path: DATA_PATH }
         ]
     },
     'dashboard-5': {
-    title: 'Energy Transition: Fossil vs Low-Carbon',
-    explanationTitle: 'Transition Leadership Analysis',
-    explanation: `<p>Use the map to select a country and the slider to change the year. The chart below shows the electricity mix: Red represents Fossil Fuels and Green represents Low-Carbon (Renewables + Nuclear).</p>`,
+    title: 'Energy: Fossil vs Low-Carbon',
+    explanationTitle: 'John Smith\'s Analysis',
+    explanation: `<p>Select a country from the map and slider to change the year. The chart will show the comparison - Red is for Fossil Fuels and Green is for Low-Carbon (Renewables + Nuclear).
+    By default, it shows the Top 10 Leaders (greenest countries). But, on click a country in the map, that specific country is added into the list.</p>`,
     charts: [
         { 
-            title: 'Interactive Transition Atlas (Click a country)', 
+            title: 'Interactive Map (Click a country)', 
             drawFunction: (path, id) => draw_interactive_atlas_d5(path, id), 
             data_path: DATA_PATH 
         },
         { 
-            title: 'Electricity Mix Comparison', 
+            title: 'Comparison on Greenest', 
             drawFunction: (path, id) => draw_fossil_vs_lowcarbon(path, id, selectedD5Year, selectedD5Country), 
             data_path: DATA_PATH 
         }
