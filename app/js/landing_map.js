@@ -78,9 +78,6 @@ export function draw_landing_map(csvPath, containerId) {
             .on("click", (event, d) => {
                 const selectedCountry = getMatchedName(d.properties.name);
                 console.log("Navigating to:", selectedCountry);
-                
-                const dash1 = document.querySelector('[data-dashboard-id="dashboard-1"]');
-                if (dash1) dash1.click();
             });
 
         // Centered Footer
