@@ -1,11 +1,14 @@
 export function draw_fossil_vs_lowcarbon(data_path, containerId, year, selectedCountry = null) {
     const svg = d3.select(containerId);
+    const container = svg.node().parentNode;
     const width = 1000;
-    const height = 450;
+    const height = 500;
     const margin = { top: 40, right: 150, bottom: 60, left: 180 };
 
     svg.selectAll("*").remove();
-    svg.attr("viewBox", `0 0 ${width} ${height}`);
+    svg.attr("viewBox", `0 0 ${width} ${height}`)
+       .attr("preserveAspectRatio", "xMidYMid meet")
+       .classed("w-full h-auto", true);
 
     d3.csv(data_path).then(data => {
         // process Data & Calculate Percentages
