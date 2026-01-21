@@ -5,10 +5,10 @@ import { electricity_vs_cleancooking } from "./dashboard_4.js";
 import { draw_fossil_vs_lowcarbon } from "./dashboard_5.js";
 import { draw_landing_map } from './landing_map.js';
 
-let selectedD4Year = 2019;
+let selectedD4Year = 2020;
 let currentMapMode = "none"; 
-let currentMapYear = 2019;
-let selectedD5Year = 2019;
+let currentMapYear = 2020;
+let selectedD5Year = 2020;
 let selectedD5Country = null;
 const DATA_PATH = '../../data/processed_data.csv';
 
