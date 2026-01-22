@@ -4,27 +4,21 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Global Energy Data</title>
-    
-    <!-- Tailwind CSS & D3.js -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://d3js.org/d3.v7.min.js"></script>
-    
-    <link rel="stylesheet" href="css/bootstrap.min.css">
-    <link rel="stylesheet" href="css/style.min.css">
-    <link rel="stylesheet" href="css/main.css">
 </head>
 
 <body class="bg-gray-100 font-sans leading-normal tracking-normal min-h-screen">
 
-    <main id="main-content" class="container mx-auto px-4 md:px-10 py-6 max-w-6xl">
+    <main id="main-content" class="container mx-auto px-4 md:px-10 py-6 max-w-[1400px]">
         
-        <!-- 1. Header (Top) -->
+        <!-- Header -->
         <header class="text-center mb-6">
             <h1 id="main-header-title" class="text-4xl font-black text-gray-900 mb-1">Global Data on Sustainable Energy</h1>
             <p class="text-gray-500 font-medium italic">Prepared by Anisha Basnet & Yusnardo Tendio</p>
         </header>
 
-        <!-- 2. Navigation / Selector -->
+        <!--Navigation -->
         <div id="map-controls" class="mb-8 p-6 bg-white shadow-md rounded-xl border-t-4 border-indigo-500">
             <div class="flex flex-col w-full">
                 <label class="text-xs font-bold text-indigo-900 uppercase tracking-widest mb-2">Select User Story</label>
@@ -39,7 +33,7 @@
             </div>
         </div>
 
-        <!-- 3. Visualization Section (Full Width) -->
+        <!-- Visualization -->
         <section class="bg-white p-6 md:p-8 rounded-2xl shadow-2xl border border-gray-200 mb-8">
             <h2 id="viz-panel-title" class="text-2xl font-black text-gray-800 mb-6 border-b pb-2">Global Overview</h2>
             
@@ -49,6 +43,7 @@
                 <div id="chart-slot-1" class="hidden">
                     <h3 id="title-slot-1" class="text-lg font-bold text-gray-700 mb-3"></h3>
                     <div class="bg-gray-50 rounded-xl border border-gray-200 p-2">
+                        <!-- Map/Main Chart -->
                         <svg id="svg-slot-1" viewBox="0 0 1000 500" class="w-full h-auto"></svg>
                     </div>
                 </div>
@@ -76,8 +71,9 @@
                     </div>
                 </div>
 
-                <!-- Slot 2 & 3 (Side-by-Side if both exist, otherwise full width) -->
+                <!-- Slots 2 & 3 -->
                 <div id="extra-charts-row" class="flex flex-col md:flex-row gap-8 items-stretch">
+                    <!-- If Slot 3 is hidden, flex-1 makes Slot 2 take 100% of the 1400px width -->
                     <div id="chart-slot-2" class="hidden flex-1 flex flex-col">
                         <h3 id="title-slot-2" class="text-lg font-bold text-gray-700 mb-3"></h3>
                         <div class="bg-gray-50 rounded-xl p-4 border border-gray-200 flex-grow">
@@ -96,7 +92,7 @@
             </div>
         </section>
 
-        <!-- 4. Interpretation Section (Now at the Bottom) -->
+        <!-- Interpretation -->
         <section class="bg-indigo-900 text-white p-8 rounded-2xl shadow-xl">
             <h2 id="viz-explanation-title" class="text-xl font-bold mb-4 text-indigo-300 uppercase tracking-widest border-b border-indigo-800 pb-2">Interpretation</h2>
             <div id="viz-explanation-text" class="text-indigo-50 leading-relaxed text-lg italic">
@@ -104,11 +100,9 @@
             </div>
         </section>
 
-        <!-- Tooltip -->
         <div id="tooltip" class="fixed p-3 bg-gray-900 text-white rounded shadow-2xl pointer-events-none opacity-0 z-50 text-sm border border-indigo-400"></div>
 
     </main>
-
     <script type="module" src="js/main.js"></script>
 </body>
 </html>

@@ -98,7 +98,7 @@ const dashboardConfigs = {
     
 };
 
-/* Clears the UI slots before loading new charts */
+/* Clear UI slots before loading new chart */
 function resetChartSlots() {
     const d4Controls = document.getElementById('dashboard-4-extra-controls');
     const d5Controls = document.getElementById('dashboard-5-extra-controls');
@@ -205,7 +205,7 @@ function draw_interactive_atlas_d5(csvPath, containerId) {
     });
 }
 
-// Event Listeners
+// Event Listener
 document.addEventListener('DOMContentLoaded', function() {
     const selector = document.getElementById('dashboard-selector');
     const homeLink = document.getElementById('home-link');
