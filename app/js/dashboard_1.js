@@ -3,7 +3,26 @@ export function draw_overall_co2_timeseries(data_path, containerId = '#d3-chart'
     const container = svg.node() ? svg.node().parentNode : { clientWidth: 800 }; 
     const width = container.clientWidth || 800;
     const height = 400;
-    const tooltip = d3.select("#tooltip");
+    // const tooltip = d3.select("#tooltip");
+
+
+    d3.select("#chart-tooltip").remove();
+
+    const tooltip = d3.select("body")
+        .append("div")
+        .attr("id", "chart-tooltip")
+        .style("position", "absolute")
+        .style("z-index", "9999")
+        .style("opacity", 0)
+        .style("background", "rgba(255, 255, 255, 0.95)")
+        .style("color", "#333")
+        .style("padding", "10px")
+        .style("border", "1px solid #ddd")
+        .style("border-radius", "4px")
+        .style("pointer-events", "none") 
+        .style("font-family", "sans-serif")
+        .style("font-size", "12px")
+        .style("box-shadow", "0 4px 6px rgba(0,0,0,0.1)");
 
     svg.selectAll("*").remove();
     svg.attr("viewBox", `0 0 ${width} ${height}`)
@@ -139,7 +158,25 @@ export function draw_top10_co2_emiters(data_path, containerId = '#d3-chart') {
     const g = svg.append("g")
         .attr("transform", `translate(${margin.left},${margin.top})`);
         
-    const tooltip = d3.select("#tooltip"); 
+    // const tooltip = d3.select("#tooltip"); 
+
+    d3.select("#chart-tooltip2").remove();
+
+    const tooltip2 = d3.select("body")
+        .append("div")
+        .attr("id", "chart-tooltip2")
+        .style("position", "absolute")
+        .style("z-index", "9999")
+        .style("opacity", 0)
+        .style("background", "rgba(255, 255, 255, 0.95)")
+        .style("color", "#333")
+        .style("padding", "10px")
+        .style("border", "1px solid #ddd")
+        .style("border-radius", "4px")
+        .style("pointer-events", "none") 
+        .style("font-family", "sans-serif")
+        .style("font-size", "12px")
+        .style("box-shadow", "0 4px 6px rgba(0,0,0,0.1)");
 
     d3.csv(data_path).then(raw_data => {
         const aggregatedData = d3.rollup(
@@ -194,8 +231,8 @@ export function draw_top10_co2_emiters(data_path, containerId = '#d3-chart') {
         g.selectAll(".bar")
             .on("mouseover", function(event, d) {
                 d3.select(this).attr("fill", "#3730a3"); 
-                tooltip.transition().duration(200).style("opacity", 1);
-                tooltip.html(`
+                tooltip2.transition().duration(200).style("opacity", 1);
+                tooltip2.html(`
                     <strong>Country:</strong> ${d.country}<br>
                     <strong>Total Emissions:</strong> ${d3.format(".3s")(d.total_emission)}
                 `);
@@ -203,12 +240,12 @@ export function draw_top10_co2_emiters(data_path, containerId = '#d3-chart') {
                 const scrollX = window.scrollX || window.pageXOffset;
                 const scrollY = window.scrollY || window.pageYOffset;
                 
-                tooltip.style("left", (event.clientX + scrollX + 15) + "px")
+                tooltip2.style("left", (event.clientX + scrollX + 15) + "px")
                        .style("top", (event.clientY + scrollY - 28) + "px");
             })
             .on("mouseout", function() {
                 d3.select(this).attr("fill", "#4f46e5");
-                tooltip.transition().duration(500).style("opacity", 0);
+                tooltip2.transition().duration(500).style("opacity", 0);
             });
         
         g.append("text")
