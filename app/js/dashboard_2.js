@@ -3,7 +3,26 @@ export function draw_germany_renewables_timeseries(data_path, containerId = '#d3
     const container = svg.node() ? svg.node().parentNode : { clientWidth: 800 }; 
     const width = container.clientWidth || 800;
     const height = 400;
-    const tooltip = d3.select("#tooltip");
+    // const tooltip = d3.select("#tooltip");
+
+    d3.select("#chart-tooltip").remove();
+
+    const tooltip = d3.select("body")
+        .append("div")
+        .attr("id", "chart-tooltip")
+        .style("position", "absolute")
+        .style("z-index", "9999")
+        .style("opacity", 0)
+        .style("background", "rgba(255, 255, 255, 0.95)")
+        .style("color", "#333")
+        .style("padding", "10px")
+        .style("border", "1px solid #ddd")
+        .style("border-radius", "4px")
+        .style("pointer-events", "none") 
+        .style("font-family", "sans-serif")
+        .style("font-size", "12px")
+        .style("box-shadow", "0 4px 6px rgba(0,0,0,0.1)");
+
     svg.selectAll("*").remove();
     svg.attr("viewBox", `0 0 ${width} ${height}`)
        .attr("preserveAspectRatio", "xMinYMin meet");
