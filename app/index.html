@@ -4,7 +4,6 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Global Energy Data</title>
-    <meta name="author" content="Anisha Basnet & Yusnardo Tendio">
     
     <!-- Tailwind CSS & D3.js -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -17,17 +16,16 @@
 
 <body class="bg-gray-100 font-sans leading-normal tracking-normal min-h-screen">
 
-    <!-- Main (Full Width) -->
-    <main id="main-content" class="w-full px-4 md:px-10 py-6">
+    <main id="main-content" class="container mx-auto px-4 md:px-10 py-6 max-w-6xl">
         
-        <!-- Header -->
+        <!-- 1. Header (Top) -->
         <header class="text-center mb-6">
             <h1 id="main-header-title" class="text-4xl font-black text-gray-900 mb-1">Global Data on Sustainable Energy</h1>
             <p class="text-gray-500 font-medium italic">Prepared by Anisha Basnet & Yusnardo Tendio</p>
         </header>
 
-        <!-- Navigation and Controls Panel -->
-        <div id="map-controls" class="mb-6 p-6 bg-white shadow-md rounded-xl border-t-4 border-indigo-500">
+        <!-- 2. Navigation / Selector -->
+        <div id="map-controls" class="mb-8 p-6 bg-white shadow-md rounded-xl border-t-4 border-indigo-500">
             <div class="flex flex-col w-full">
                 <label class="text-xs font-bold text-indigo-900 uppercase tracking-widest mb-2">Select User Story</label>
                 <select id="dashboard-selector" class="w-full p-3 border-2 border-indigo-100 rounded-lg bg-gray-50 text-indigo-900 font-bold focus:ring-2 focus:ring-indigo-500 outline-none transition-all cursor-pointer">
@@ -41,81 +39,73 @@
             </div>
         </div>
 
-        <!-- Visualization -->
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start"></div>
-        <section class="lg:col-span-8 bg-white p-6 rounded-2xl shadow-2xl border border-gray-200">
-                <h2 id="viz-panel-title" class="text-2xl font-black text-gray-800 mb-4 border-b pb-2">Global Overview</h2>
-                
-                <div id="visualization-container">
+        <!-- 3. Visualization Section (Full Width) -->
+        <section class="bg-white p-6 md:p-8 rounded-2xl shadow-2xl border border-gray-200 mb-8">
+            <h2 id="viz-panel-title" class="text-2xl font-black text-gray-800 mb-6 border-b pb-2">Global Overview</h2>
             
-            <!-- Dashboard 4 Specific -->
-            <div id="dashboard-4-extra-controls" class="hidden bg-indigo-50 p-4 rounded-xl mb-6 border border-indigo-100 flex flex-col md:flex-row items-center justify-between gap-4">
-                <div class="flex items-center gap-4 w-full md:w-2/3">
-                    <label class="font-bold text-indigo-900 whitespace-nowrap">Select Year: <span id="year-display" class="text-indigo-600">2020</span></label>
-                    <input type="range" id="year-slider" min="2000" max="2020" value="2020" class="w-full h-2 bg-indigo-200 rounded-lg appearance-none cursor-pointer accent-indigo-600">
-                </div>
-                <div class="bg-white px-4 py-2 rounded-lg shadow-sm border border-indigo-200">
-                    <span class="text-sm text-gray-500 uppercase font-bold tracking-tighter">Countries with GDP ≤ $2000:</span>
-                    <span id="poor-country-count" class="text-xl font-black text-indigo-700 ml-2">0</span>
-                </div>
-            </div>
-
-<!-- Dashboard 5 Specific  -->
-<div id="dashboard-5-extra-controls" class="hidden bg-emerald-50 p-4 rounded-xl mb-6 border border-emerald-100 flex flex-col md:flex-row items-center justify-between gap-4">
-    <div class="flex items-center gap-4 w-full md:w-2/3">
-        <label class="font-bold text-emerald-900 whitespace-nowrap">Select Year: <span id="year-display-5" class="text-emerald-600">2020</span></label>
-        <input type="range" id="year-slider-5" min="2000" max="2020" value="2020" class="w-full h-2 bg-emerald-200 rounded-lg appearance-none cursor-pointer accent-emerald-600">
-    </div>
-    <div class="bg-white px-4 py-2 rounded-lg shadow-sm border border-emerald-200">
-        <span class="text-sm text-gray-500 uppercase font-bold tracking-tighter">Viewing Country:</span>
-        <span id="selected-country-5" class="text-xl font-black text-emerald-700 ml-2">Global Top 10</span>
-    </div>
-</div>
+            <div id="visualization-container" class="space-y-10">
                 
-                <!-- Tooltip -->
-                <div id="tooltip" class="fixed p-3 bg-gray-900 text-white rounded shadow-2xl pointer-events-none opacity-0 z-50 text-sm border border-indigo-400"></div>
-                 <div class="space-y-6"></div>
-                <!-- Chart Slot 1 -- Primary Map/Chart -->
-               <div id="chart-slot-1" class="hidden">
-                            <h3 id="title-slot-1" class="text-lg font-bold text-gray-700 mb-2"></h3>
-                            <div class="bg-gray-50 rounded-xl border border-gray-100 p-2">
-                                <svg id="svg-slot-1" class="w-full h-auto max-h-[600px]"></svg>
-                            </div>
-                        </div>
-<!-- Grid for Slots 2 & 3 (Side by Side) -->
-<div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-stretch">
-    <!-- Slot 2 -->
-    <div id="chart-slot-2" class="hidden flex flex-col">
-        <h3 id="title-slot-2" class="text-lg font-bold text-gray-700 mb-2"></h3>
-        <!-- Added min-h and bg-gray-50 -->
-        <div class="bg-gray-50 rounded-xl p-4 border border-gray-100 flex-grow">
-            <svg id="svg-slot-2" viewBox="0 0 800 500" preserveAspectRatio="xMidYMid meet" class="w-full h-auto"></svg>
-        </div>
-    </div>
-
-    <!-- Slot 3 -->
-    <div id="chart-slot-3" class="hidden flex flex-col">
-        <h3 id="title-slot-3" class="text-lg font-bold text-gray-700 mb-2"></h3>
-        <div class="bg-gray-50 rounded-xl p-4 border border-gray-100 flex-grow">
-            <svg id="svg-slot-3" viewBox="0 0 800 500" preserveAspectRatio="xMidYMid meet" class="w-full h-auto"></svg>
-        </div>
-    </div>
-</div>
-</div>
-                
-             
-            </section>
- <!-- Analysis & Interpretation Section -->
- <aside class="lg:col-span-4 space-y-6"></aside>
-       
-       <section class="bg-indigo-900 text-white p-8 rounded-2xl shadow-xl sticky top-6">
-                    <h2 id="viz-explanation-title" class="text-xl font-bold mb-4 text-indigo-300 uppercase tracking-widest">Interpretation</h2>
-                    <div id="viz-explanation-text" class="text-indigo-50 leading-relaxed text-base italic">
-                        Select user story from the dropdown to view analysis.
+                <!-- Slot 1 (Full Width) -->
+                <div id="chart-slot-1" class="hidden">
+                    <h3 id="title-slot-1" class="text-lg font-bold text-gray-700 mb-3"></h3>
+                    <div class="bg-gray-50 rounded-xl border border-gray-200 p-2">
+                        <svg id="svg-slot-1" viewBox="0 0 1000 500" class="w-full h-auto"></svg>
                     </div>
-                </section>
-            </aside>
-        </div>
+                </div>
+
+                <!-- Dashboard 4 Controls -->
+                <div id="dashboard-4-extra-controls" class="hidden bg-indigo-50 p-4 rounded-xl border border-indigo-100 flex flex-col md:flex-row items-center justify-between gap-4">
+                    <div class="flex items-center gap-4 w-full md:w-2/3">
+                        <label class="font-bold text-indigo-900 whitespace-nowrap">Year: <span id="year-display">2020</span></label>
+                        <input type="range" id="year-slider" min="2000" max="2020" value="2020" class="w-full accent-indigo-600">
+                    </div>
+                    <div class="bg-white px-4 py-2 rounded-lg shadow-sm border border-indigo-200">
+                        <span class="text-xs text-gray-400 font-bold uppercase">GDP ≤ $2000:</span>
+                        <span id="poor-country-count" class="text-xl font-black text-indigo-700 ml-2">0</span>
+                    </div>
+                </div>
+
+                <!-- Dashboard 5 Controls -->
+                <div id="dashboard-5-extra-controls" class="hidden bg-emerald-50 p-4 rounded-xl border border-emerald-100 flex flex-col md:flex-row items-center justify-between gap-4">
+                    <div class="flex items-center gap-4 w-full md:w-2/3">
+                        <label class="font-bold text-emerald-900 whitespace-nowrap">Year: <span id="year-display-5">2020</span></label>
+                        <input type="range" id="year-slider-5" min="2000" max="2020" value="2020" class="w-full accent-emerald-600">
+                    </div>
+                    <div class="bg-white px-4 py-2 rounded-lg shadow-sm border border-emerald-200">
+                        <span id="selected-country-5" class="text-lg font-black text-emerald-700">Global Top 10</span>
+                    </div>
+                </div>
+
+                <!-- Slot 2 & 3 (Side-by-Side if both exist, otherwise full width) -->
+                <div id="extra-charts-row" class="flex flex-col md:flex-row gap-8 items-stretch">
+                    <div id="chart-slot-2" class="hidden flex-1 flex flex-col">
+                        <h3 id="title-slot-2" class="text-lg font-bold text-gray-700 mb-3"></h3>
+                        <div class="bg-gray-50 rounded-xl p-4 border border-gray-200 flex-grow">
+                            <svg id="svg-slot-2" viewBox="0 0 800 450" preserveAspectRatio="xMidYMid meet" class="w-full h-auto"></svg>
+                        </div>
+                    </div>
+
+                    <div id="chart-slot-3" class="hidden flex-1 flex flex-col">
+                        <h3 id="title-slot-3" class="text-lg font-bold text-gray-700 mb-3"></h3>
+                        <div class="bg-gray-50 rounded-xl p-4 border border-gray-200 flex-grow">
+                            <svg id="svg-slot-3" viewBox="0 0 800 450" preserveAspectRatio="xMidYMid meet" class="w-full h-auto"></svg>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- 4. Interpretation Section (Now at the Bottom) -->
+        <section class="bg-indigo-900 text-white p-8 rounded-2xl shadow-xl">
+            <h2 id="viz-explanation-title" class="text-xl font-bold mb-4 text-indigo-300 uppercase tracking-widest border-b border-indigo-800 pb-2">Interpretation</h2>
+            <div id="viz-explanation-text" class="text-indigo-50 leading-relaxed text-lg italic">
+                Select a user story from the dropdown above to view the analysis.
+            </div>
+        </section>
+
+        <!-- Tooltip -->
+        <div id="tooltip" class="fixed p-3 bg-gray-900 text-white rounded shadow-2xl pointer-events-none opacity-0 z-50 text-sm border border-indigo-400"></div>
 
     </main>
 
