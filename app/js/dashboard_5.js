@@ -1,6 +1,5 @@
 export function draw_fossil_vs_lowcarbon(data_path, containerId, year, selectedCountry = null) {
     const svg = d3.select(containerId);
-    const container = svg.node().parentNode;
     const width = 1000;
     const height = 500;
     const margin = { top: 40, right: 150, bottom: 60, left: 180 };
@@ -11,7 +10,6 @@ export function draw_fossil_vs_lowcarbon(data_path, containerId, year, selectedC
        .classed("w-full h-auto", true);
 
     d3.csv(data_path).then(data => {
-        // process Data & calculate %
         let yearData = data.filter(d => +d.year === year && d.country !== "World");
         
         yearData.forEach(d => {
@@ -23,7 +21,6 @@ export function draw_fossil_vs_lowcarbon(data_path, containerId, year, selectedC
             d.low_carbon_pct = total > 0 ? (lowCarbon / total) * 100 : 0;
         });
 
-        // show Top 10 and selected country is visible
         let displayData = yearData.sort((a, b) => b.low_carbon_pct - a.low_carbon_pct).slice(0, 10);
         
         if (selectedCountry) {
@@ -37,10 +34,9 @@ export function draw_fossil_vs_lowcarbon(data_path, containerId, year, selectedC
         const x = d3.scaleLinear().domain([0, 100]).range([margin.left, width - margin.right]);
         const y = d3.scaleBand().domain(displayData.map(d => d.country)).range([margin.top, height - margin.bottom]).padding(0.3);
 
-        // Bars (stacked)
         const g = svg.append("g");
 
-        // Fossil Part (Red)
+        // Fossil Part (Blue: #67acd4)
         g.selectAll(".bar-fossil")
             .data(displayData)
             .join("rect")
@@ -48,9 +44,9 @@ export function draw_fossil_vs_lowcarbon(data_path, containerId, year, selectedC
             .attr("x", margin.left)
             .attr("height", y.bandwidth())
             .attr("width", d => x(d.fossil_pct) - margin.left)
-            .attr("fill", "#ef4444");
+            .attr("fill", "#67acd4");
 
-        // Low Carbon Part (Green) - stack after Fossil
+        // Low Carbon Part (Lighter Blue: #a5cce5)
         g.selectAll(".bar-green")
             .data(displayData)
             .join("rect")
@@ -58,7 +54,7 @@ export function draw_fossil_vs_lowcarbon(data_path, containerId, year, selectedC
             .attr("x", d => x(d.fossil_pct))
             .attr("height", y.bandwidth())
             .attr("width", d => x(d.fossil_pct + d.low_carbon_pct) - x(d.fossil_pct))
-            .attr("fill", "#22c55e");
+            .attr("fill", "#a5cce5");
 
         // Label
         g.selectAll(".pct-label")
@@ -67,21 +63,26 @@ export function draw_fossil_vs_lowcarbon(data_path, containerId, year, selectedC
             .attr("x", d => x(100) + 10)
             .attr("y", d => y(d.country) + y.bandwidth()/2 + 5)
             .text(d => `${Math.round(d.low_carbon_pct)}% Green`)
-            .attr("class", "text-sm font-bold fill-emerald-700");
+            .attr("class", "text-sm font-bold")
+            .attr("fill", "#000000"); 
 
-        // axes
+        // Axes
         svg.append("g").attr("transform", `translate(0,${height - margin.bottom})`).call(d3.axisBottom(x).tickFormat(d => d + "%"));
         svg.append("g").attr("transform", `translate(${margin.left},0)`)
             .call(d3.axisLeft(y))
             .selectAll("text")
             .style("font-weight", d => d === selectedCountry ? "900" : "normal")
-            .style("fill", d => d === selectedCountry ? "#065f46" : "#374151");
+            .style("fill", "#000000"); // Standard Black
         
-        // legend
+        // Legend
         const legend = svg.append("g").attr("transform", `translate(${width/2 - 100}, 15)`);
-        legend.append("rect").attr("width", 15).attr("height", 15).attr("fill", "#ef4444");
-        legend.append("text").attr("x", 20).attr("y", 12).text("Fossil").attr("class", "text-xs");
-        legend.append("rect").attr("x", 80).attr("width", 15).attr("height", 15).attr("fill", "#22c55e");
-        legend.append("text").attr("x", 100).attr("y", 12).text("Low Carbon").attr("class", "text-xs");
+        
+        // Match Fossil color
+        legend.append("rect").attr("width", 15).attr("height", 15).attr("fill", "#67acd4");
+        legend.append("text").attr("x", 20).attr("y", 12).text("Fossil").attr("class", "text-xs font-bold").attr("fill", "#000");
+        
+        // Match Low Carbon color
+        legend.append("rect").attr("x", 80).attr("width", 15).attr("height", 15).attr("fill", "#a5cce5");
+        legend.append("text").attr("x", 100).attr("y", 12).text("Low Carbon").attr("class", "text-xs font-bold").attr("fill", "#000");
     });
 }

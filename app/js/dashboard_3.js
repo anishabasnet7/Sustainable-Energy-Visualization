@@ -58,15 +58,17 @@ export function draw_correlation_scatter(data_path, containerId = '#d3-chart') {
             .domain([0, d3.max(data, d => d.energy) * 1.05])
             .range([innerHeight, 0]);
 
+        // AXES
         g.append("g")
             .attr("transform", `translate(0,${innerHeight})`)
             .call(d3.axisBottom(x).ticks(5, d3.format("$,.0s")))
-            .attr("class", "text-gray-600");
+            .attr("class", "text-black font-medium");
 
         g.append("g")
             .call(d3.axisLeft(y).ticks(5).tickFormat(d3.format(".2s")))
-            .attr("class", "text-gray-600");
+            .attr("class", "text-black font-medium");
 
+        // DATA POINTS (DOTS)
         g.selectAll(".dot")
             .data(data)
             .enter().append("circle")
@@ -74,14 +76,15 @@ export function draw_correlation_scatter(data_path, containerId = '#d3-chart') {
             .attr("cx", d => x(d.gdp))
             .attr("cy", d => y(d.energy))
             .attr("r", 5) 
-            .attr("fill", "#4f46e5") 
+            .attr("fill", "#67acd4") // BLUE
             .attr("opacity", 0.7)
-            .attr("stroke", "#3730a3") 
+            .attr("stroke", "#4fa0c0") // Slightly darker blue for contrast
             
             .on("mouseover", function(event, d) {
                 d3.select(this)
-                    .attr("r", 7)
-                    .attr("opacity", 1); 
+                    .attr("r", 8)
+                    .attr("opacity", 1)
+                    .attr("stroke", "#000"); // Black highlight on hover
 
                 tooltip.transition()
                     .duration(100)
@@ -90,8 +93,7 @@ export function draw_correlation_scatter(data_path, containerId = '#d3-chart') {
                 tooltip.html(`
                     <strong>${d.country}</strong><br>
                     Avg. GDP p/c: ${d3.format("$,.0f")(d.gdp)}<br>
-                    Avg. Energy p/c: ${d3.format(".2s")(d.energy)}<br>
-                    (${d.num_years-1} years of data)
+                    Avg. Energy p/c: ${d3.format(".2s")(d.energy)}
                 `);
             })
             .on("mousemove", function(event) {
@@ -103,36 +105,40 @@ export function draw_correlation_scatter(data_path, containerId = '#d3-chart') {
             .on("mouseout", function() {
                 d3.select(this)
                     .attr("r", 5)
-                    .attr("opacity", 0.7);
+                    .attr("opacity", 0.7)
+                    .attr("stroke", "#4fa0c0");
 
                 tooltip.transition()
                     .duration(100)
                     .style("opacity", 0);
             });
 
+        // LABELS & TITLES (BLACK/GRAY)
         g.append("text")
             .attr("x", innerWidth / 2)
             .attr("y", innerHeight + margin.bottom - 10)
             .style("text-anchor", "middle")
-            .attr("fill", "#4b5563")
+            .attr("fill", "#000")
+            .attr("class", "text-sm font-bold")
             .text("Average GDP Per Capita (US$)");
 
         g.append("text")
             .attr("transform", "rotate(-90)")
-            .attr("y", 0 - margin.left)
+            .attr("y", 0 - margin.left + 20)
             .attr("x", 0 - (innerHeight / 2))
             .attr("dy", "1em")
             .style("text-anchor", "middle")
-            .attr("fill", "#4b5563")
+            .attr("fill", "#000")
+            .attr("class", "text-sm font-bold")
             .text("Average Energy Consumption Per Person");
 
         g.append("text")
             .attr("x", innerWidth / 2)
-            .attr("y", 0 - margin.top + 20)
+            .attr("y", 0 - margin.top + 30)
             .attr("text-anchor", "middle")
-            .attr("class", "text-xl font-semibold")
-            .attr("fill", "#1f2937")
-            .text(`Average GDP vs. Average Energy Consumption`);
+            .attr("class", "text-xl font-black")
+            .attr("fill", "#000")
+            .text(`Global Wealth vs. Energy Consumption`);
             
     });
 }

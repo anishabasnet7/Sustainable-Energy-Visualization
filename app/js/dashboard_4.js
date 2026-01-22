@@ -23,7 +23,7 @@ function draw_interactive_atlas(fullData, year, containerId, onCountrySelect) {
        .attr("preserveAspectRatio", "xMidYMid meet")
        .classed("w-full h-auto", true);
 
-    // 1. Setup the SAME color scale as dashboard.js (Blue Choropleth)
+    // SAME color scale as dashboard.js (Blue Choropleth)
     const maxGdp = d3.max(fullData, d => +d.gdp_per_capita) || 100000;
     const colorScale = d3.scaleSequential()
         .domain([0, maxGdp])
@@ -57,12 +57,12 @@ function draw_interactive_atlas(fullData, year, containerId, onCountrySelect) {
                 const cleanName = getCleanName(d.properties.name);
                 const stats = dataMap.get(cleanName);
                 // Give target countries (GDP <= 2000) a distinct border to make them "pop"
-                return (stats && +stats.gdp_per_capita <= 2000) ? "#4f46e5" : "#cbd5e1";
+                return (stats && +stats.gdp_per_capita <= 2000) ? "#a5cce5" : "#cbd5e1";
             })
             .attr("stroke-width", d => {
                 const cleanName = getCleanName(d.properties.name);
                 const stats = dataMap.get(cleanName);
-                return (stats && +stats.gdp_per_capita <= 2000) ? 1.2 : 0.4;
+                return (stats && +stats.gdp_per_capita <= 2000) ? 1.0 : 0.4;
             })
             .style("cursor", d => {
                 const cleanName = getCleanName(d.properties.name);
@@ -74,14 +74,14 @@ function draw_interactive_atlas(fullData, year, containerId, onCountrySelect) {
                 const stats = dataMap.get(cleanName);
                 
                 // Highlight on hover
-                d3.select(this).attr("stroke", "#000").attr("stroke-width", 2).raise();
+                d3.select(this).attr("stroke", "#67acd4").attr("stroke-width", 2).raise();
 
                 tip.transition().duration(100).style("opacity", 1);
                 tip.html(`
                     <div class="font-bold border-b mb-1">${cleanName}</div>
                     <div class="text-xs">GDP: ${stats ? '$' + Math.round(stats.gdp_per_capita) : 'No Data'}</div>
                     ${(stats && +stats.gdp_per_capita <= 2000) ? 
-                        '<div class="text-[10px] text-indigo-600 font-bold mt-1">CLICK TO ANALYZE ACCESS GAP</div>' : 
+                        '<div class="text-[10px] text-indigo-600 font-bold mt-1">Click to analyze access gap</div>' : 
                         '<div class="text-[10px] text-gray-400">GDP > $2000</div>'}
                 `);
             })
@@ -92,8 +92,8 @@ function draw_interactive_atlas(fullData, year, containerId, onCountrySelect) {
                 
                 // Reset stroke based on original condition
                 d3.select(this)
-                    .attr("stroke", (stats && +stats.gdp_per_capita <= 2000) ? "#4f46e5" : "#cbd5e1")
-                    .attr("stroke-width", (stats && +stats.gdp_per_capita <= 2000) ? 1.2 : 0.4);
+                    .attr("stroke", (stats && +stats.gdp_per_capita <= 2000) ? " #a5cce5" : "#cbd5e1")
+                    .attr("stroke-width", (stats && +stats.gdp_per_capita <= 2000) ? 1 : 0.4);
                 
                 tip.transition().duration(100).style("opacity", 0);
             })
@@ -155,8 +155,8 @@ function draw_gap_comparison(data, countryName, svgId, year) {
     if (!stats) return;
 
     const metrics = [
-        { name: "Electricity Access", val: +stats.access_to_electricity || 0, color: "#08519c" },
-        { name: "Clean Cooking Access", val: +stats.access_to_clean_fuels_for_cooking || 0, color:  "#54278f"}
+        { name: "Electricity Access", val: +stats.access_to_electricity || 0, color: "#67acd4" },
+        { name: "Clean Cooking Access", val: +stats.access_to_clean_fuels_for_cooking || 0, color:  "#a5cce5"}
     ];
 
     const x = d3.scaleLinear().domain([0, 100]).range([margin.left, width - margin.right]);
@@ -195,7 +195,7 @@ function draw_historical_trend(data, countryName, svgId) {
 
     const line = d3.line().x(d => x(+d.year)).y(d => y(+d.access_to_clean_fuels_for_cooking || 0));
 
-    svg.append("path").datum(history).attr("fill", "none").attr("stroke", "#9333ea").attr("stroke-width", 3).attr("d", line);
+    svg.append("path").datum(history).attr("fill", "none").attr("stroke", "#67acd4").attr("stroke-width", 3).attr("d", line);
     
     svg.append("text").attr("x", width/2).attr("y", 30).attr("text-anchor", "middle").attr("class", "text-xl font-black")
        .text(`Trend: Clean Cooking Access in ${countryName}`);
