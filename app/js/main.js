@@ -3,28 +3,27 @@ import { draw_germany_renewables_timeseries } from './dashboard_2.js';
 import { draw_correlation_scatter } from './dashboard_3.js';
 import { electricity_vs_cleancooking } from "./dashboard_4.js";
 import { draw_fossil_vs_lowcarbon } from "./dashboard_5.js";
-import { draw_landing_map } from './landing_map.js';
 
 let selectedD4Year = 2020;
-let currentMapMode = "none"; 
-let currentMapYear = 2020;
 let selectedD5Year = 2020;
 let selectedD5Country = null;
+let currentMapMode = "none"; 
+let currentMapYear = 2020;
 const DATA_PATH = '../../data/processed_data.csv';
 
 const dashboardConfigs = {
-    'dashboard-home': {
-        title: 'Global Energy: Spatial Overview',
-        explanationTitle: 'Project Introduction',
-        explanation: `<p class="text-lg">Select a dashboard (user story) from the dropdown above to view the analysis.</p>`,
-        charts: [
-            { 
-                title: 'Atlas Map', 
-                drawFunction: (path, id) => draw_landing_map(path, id, currentMapMode, currentMapYear), 
-                data_path: DATA_PATH 
-            }
-        ]
-    },
+    // 'dashboard-home': {
+    //     title: 'Global Energy: Spatial Overview',
+    //     explanationTitle: 'Project Introduction',
+    //     explanation: `<p class="text-lg">Select a dashboard (user story) from the dropdown above to view the analysis.</p>`,
+    //     charts: [
+    //         { 
+    //             title: 'Atlas Map', 
+    //             drawFunction: (path, id) => draw_landing_map(path, id, currentMapMode, currentMapYear), 
+    //             data_path: DATA_PATH 
+    //         }
+    //     ]
+    // },
     'dashboard-1': {
         title: 'Overall CO2 Emission Trend (2000-2019)',
         explanationTitle: 'Analysis and Interpretation: Line Chart & Bar Chart',
@@ -124,7 +123,7 @@ function resetChartSlots() {
 
 /* Main function to load dashboard */
 function loadDashboard(id) {
-    const config = dashboardConfigs[id] || dashboardConfigs['dashboard-home'];
+    const config = dashboardConfigs[id] || dashboardConfigs['dashboard-1'];
     
     document.getElementById('viz-panel-title').textContent = config.title;
     document.getElementById('viz-explanation-title').textContent = config.explanationTitle;
@@ -178,24 +177,29 @@ function draw_interactive_atlas_d5(csvPath, containerId) {
     const width = 1000; const height = 450;
     const tip = d3.select("#tooltip");
     svg.selectAll("*").remove();
-
     const projection = d3.geoNaturalEarth1().scale(170).translate([width / 2, height / 2]);
     const path = d3.geoPath().projection(projection);
+    const colorScale = d3.scaleSequential()
+        .domain([0, 100000])
+        .interpolator(d3.interpolateBlues);
 
     d3.json("https://raw.githubusercontent.com/holtzy/D3-graph-gallery/master/DATA/world.geojson").then(world => {
         svg.append("g").selectAll("path")
             .data(world.features)
             .join("path")
             .attr("d", path)
-            .attr("fill", "#e2e8f0")
-            .attr("stroke", "#94a3b8")
+            .attr("fill", (d, i) => colorScale(i))
+            .attr("stroke", "#a5cce5")
             .style("cursor", "pointer")
-            .on("mouseover", function() { d3.select(this).attr("fill", "#6ee7b7"); })
-            .on("mouseout", function() { d3.select(this).attr("fill", "#e2e8f0"); })
+            .on("mouseover", function() { 
+                d3.select(this).attr("fill", "#67acd4").attr("stroke-width", 2).raise(); 
+            })
+            .on("mouseout", function(event, d) { 
+                const i = world.features.indexOf(d);
+                d3.select(this).attr("fill", colorScale(i)).attr("stroke-width", 1); 
+            })
             .on("click", (event, d) => {
-                // This matches the name mapping logic from your landing_map.js
                 const countryName = d.properties.name === "United States of America" ? "United States" : d.properties.name;
-                
                 selectedD5Country = countryName;
                 document.getElementById('selected-country-5').textContent = countryName;
                 

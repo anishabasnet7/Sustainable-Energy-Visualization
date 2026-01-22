@@ -1,4 +1,4 @@
-//connects GeoJSON to 'country' column
+// connects GeoJSON to 'country' column
 function getCleanName(name) {
     const mapping = {
         "United States of America": "United States",
@@ -11,20 +11,24 @@ function getCleanName(name) {
     };
     return mapping[name] || name;
 }
+
 function draw_interactive_atlas(fullData, year, containerId, onCountrySelect) {
     const svg = d3.select(containerId);
-    const container = svg.node().parentNode;
     const width = 1000; 
     const height = 500;
     const tip = d3.select("#tooltip");
     svg.selectAll("*").remove();
+
     svg.attr("viewBox", `0 0 ${width} ${height}`)
        .attr("preserveAspectRatio", "xMidYMid meet")
        .classed("w-full h-auto", true);
 
-    // Atlas colors from homepage
-    const atlasColors = ["#fef3c7", "#d1fae5", "#f67b7b", "#e0e7ff", "#f3e8ff", "#ffedd5"];
-    const colorScale = d3.scaleOrdinal(atlasColors);
+    // SAME color scale as dashboard.js (Blue Choropleth)
+    const maxGdp = d3.max(fullData, d => +d.gdp_per_capita) || 100000;
+    const colorScale = d3.scaleSequential()
+        .domain([0, maxGdp])
+        .interpolator(d3.interpolateBlues);
+
     const projection = d3.geoNaturalEarth1().scale(175).translate([width / 2, height / 2.2]);
     const path = d3.geoPath().projection(projection);
 
@@ -39,18 +43,27 @@ function draw_interactive_atlas(fullData, year, containerId, onCountrySelect) {
             .data(world.features)
             .join("path")
             .attr("d", path)
-            .attr("fill", (d, i) => {
+            .attr("fill", d => {
                 const cleanName = getCleanName(d.properties.name);
                 const stats = dataMap.get(cleanName);
-
-                // Highlight only countries with GDP per capita <= 2000
-                if (stats && +stats.gdp_per_capita <= 2000) {
-                    return colorScale(i); 
+                
+                // Use Blue Choropleth colors for all countries with data
+                if (stats && stats.gdp_per_capita !== "") {
+                    return colorScale(+stats.gdp_per_capita);
                 }
-                return "#f1f5f9"; // Grey for rich countries or no data
+                return "#f1f5f9"; // Grey for missing data
             })
-            .attr("stroke", "#94a3b8")
-            .attr("stroke-width", 0.4)
+            .attr("stroke", d => {
+                const cleanName = getCleanName(d.properties.name);
+                const stats = dataMap.get(cleanName);
+                // Give target countries (GDP <= 2000) a distinct border to make them "pop"
+                return (stats && +stats.gdp_per_capita <= 2000) ? "#a5cce5" : "#cbd5e1";
+            })
+            .attr("stroke-width", d => {
+                const cleanName = getCleanName(d.properties.name);
+                const stats = dataMap.get(cleanName);
+                return (stats && +stats.gdp_per_capita <= 2000) ? 1.0 : 0.4;
+            })
             .style("cursor", d => {
                 const cleanName = getCleanName(d.properties.name);
                 const stats = dataMap.get(cleanName);
@@ -59,20 +72,29 @@ function draw_interactive_atlas(fullData, year, containerId, onCountrySelect) {
             .on("mouseover", function(event, d) {
                 const cleanName = getCleanName(d.properties.name);
                 const stats = dataMap.get(cleanName);
-                d3.select(this).attr("stroke", "#4338ca").attr("stroke-width", 1.5);
+                
+                // Highlight on hover
+                d3.select(this).attr("stroke", "#67acd4").attr("stroke-width", 2).raise();
 
                 tip.transition().duration(100).style("opacity", 1);
                 tip.html(`
                     <div class="font-bold border-b mb-1">${cleanName}</div>
                     <div class="text-xs">GDP: ${stats ? '$' + Math.round(stats.gdp_per_capita) : 'No Data'}</div>
                     ${(stats && +stats.gdp_per_capita <= 2000) ? 
-                        '<div class="text-[10px] text-indigo-600 font-bold mt-1">CLICK TO ANALYZE</div>' : 
-                        '<div class="text-[10px] text-gray-400">GDP > 2000</div>'}
+                        '<div class="text-[10px] text-indigo-600 font-bold mt-1">Click to analyze access gap</div>' : 
+                        '<div class="text-[10px] text-gray-400">GDP > $2000</div>'}
                 `);
             })
             .on("mousemove", (event) => tip.style("left", (event.pageX + 15) + "px").style("top", (event.pageY - 28) + "px"))
-            .on("mouseout", function() {
-                d3.select(this).attr("stroke", "#94a3b8").attr("stroke-width", 0.4);
+            .on("mouseout", function(event, d) {
+                const cleanName = getCleanName(d.properties.name);
+                const stats = dataMap.get(cleanName);
+                
+                // Reset stroke based on original condition
+                d3.select(this)
+                    .attr("stroke", (stats && +stats.gdp_per_capita <= 2000) ? " #a5cce5" : "#cbd5e1")
+                    .attr("stroke-width", (stats && +stats.gdp_per_capita <= 2000) ? 1 : 0.4);
+                
                 tip.transition().duration(100).style("opacity", 0);
             })
             .on("click", (event, d) => {
@@ -84,6 +106,7 @@ function draw_interactive_atlas(fullData, year, containerId, onCountrySelect) {
             });
     });
 }
+
 // main function for Dashboard 4
 export function electricity_vs_cleancooking(csvPath, svgId, yearOverride) {
     d3.csv(csvPath).then(data => {
@@ -132,8 +155,8 @@ function draw_gap_comparison(data, countryName, svgId, year) {
     if (!stats) return;
 
     const metrics = [
-        { name: "Electricity Access", val: +stats.access_to_electricity || 0, color: "#a5b4fc" },
-        { name: "Clean Cooking Access", val: +stats.access_to_clean_fuels_for_cooking || 0, color:  "#d8b4fe"}
+        { name: "Electricity Access", val: +stats.access_to_electricity || 0, color: "#67acd4" },
+        { name: "Clean Cooking Access", val: +stats.access_to_clean_fuels_for_cooking || 0, color:  "#a5cce5"}
     ];
 
     const x = d3.scaleLinear().domain([0, 100]).range([margin.left, width - margin.right]);
@@ -144,7 +167,7 @@ function draw_gap_comparison(data, countryName, svgId, year) {
 
     svg.selectAll("rect").data(metrics).join("rect")
         .attr("x", margin.left).attr("y", d => y(d.name)).attr("width", d => x(d.val) - margin.left).attr("height", y.bandwidth())
-        .attr("fill", d => d.color);
+        .attr("fill", d => d.color).attr("rx", 4); 
 
     //labels inside or next to bars
     svg.selectAll(".label").data(metrics).join("text")
@@ -172,7 +195,7 @@ function draw_historical_trend(data, countryName, svgId) {
 
     const line = d3.line().x(d => x(+d.year)).y(d => y(+d.access_to_clean_fuels_for_cooking || 0));
 
-    svg.append("path").datum(history).attr("fill", "none").attr("stroke", "#9333ea").attr("stroke-width", 3).attr("d", line);
+    svg.append("path").datum(history).attr("fill", "none").attr("stroke", "#67acd4").attr("stroke-width", 3).attr("d", line);
     
     svg.append("text").attr("x", width/2).attr("y", 30).attr("text-anchor", "middle").attr("class", "text-xl font-black")
        .text(`Trend: Clean Cooking Access in ${countryName}`);
