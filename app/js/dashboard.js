@@ -77,7 +77,7 @@ function refreshAll() {
     update_co2_trend(data_without_year_filter);
     update_top_10_countries_co2_emission(filteredData);
     update_correlation_energy_consumption_gdp_per_capita(filteredData)
-    update_countries_with_gdp_less_than_2000(filteredData)
+    update_countries_gdp(filteredData)
     update_no_countries_with_gdp_less_than_2000(filteredData)
     update_no_countries_with_gdp_more_than_2000(filteredData)
     update_comparison_of_greenest(filteredData)
@@ -384,7 +384,7 @@ function update_correlation_energy_consumption_gdp_per_capita(data) {
         .on("mouseover", function(event, d) {
             d3.select(this).attr("r", 9).attr("opacity", 1).attr("stroke", "#000");
             tooltip.style("opacity", 1)
-                .html(`<strong>${d.country}</strong><br>GDP: ${d3.format("$,.0f")(d.gdp)}<br>Energy: ${d3.format(".2s")(d.energy)}`);
+                .html(`<strong>${d.country}</strong><br>GDP per Capita: ${d3.format("$,.0f")(d.gdp)}<br>Energy: ${d3.format(".2s")(d.energy)}`);
         })
         .on("mousemove", function(event) {
             tooltip.style("left", (event.pageX + 15) + "px")
@@ -412,111 +412,124 @@ function update_correlation_energy_consumption_gdp_per_capita(data) {
         .style("font-size", "x-small")
         .attr("fill", "#4b5563")
         .text("Average Energy Consumption Per Person");
-    correlation_energy_consumption_gdp_per_capita_svg.append('text').attr('x', width / 2).attr('y', 30).attr('text-anchor', 'middle').attr('font-weight', 'bold').text('GDP vs. Energy Consumption');
+    correlation_energy_consumption_gdp_per_capita_svg.append('text').attr('x', width / 2).attr('y', 30).attr('text-anchor', 'middle').attr('font-weight', 'bold').text('GDP per Capita vs. Energy Consumption');
 }
 
-//countries_with_gdp_less_than_2000_svg
+//countries_gdp_svg
 // ───────────────────────────────────────────────
-// 6) Countries with GDP <= 2000
+// 6) Countries GDP
 // ───────────────────────────────────────────────
 
-function update_countries_with_gdp_less_than_2000(data) {
-    const svg = d3.select('#countries_with_gdp_less_than_2000');
-    if (svg.empty()) return;
+function update_countries_gdp(data) {
+    const countries_gdp_svg = d3.select('#countries_gdp');
+    if (countries_gdp_svg.empty()) return;
     
-    const container = svg.node().parentNode;
+    const container = countries_gdp_svg.node().parentNode;
     const width = container.clientWidth;
     const height = container.clientHeight;
 
     if (width === 0 || height === 0) {
-        requestAnimationFrame(() => update_countries_with_gdp_less_than_2000(data));
+        requestAnimationFrame(() => update_countries_gdp(data));
         return;
     };
 
-    svg.attr('viewBox', `0 0 ${width} ${height}`).attr('preserveAspectRatio', 'xMidYMid meet');
-    svg.selectAll("*").remove();
+    countries_gdp_svg.attr('viewBox', `0 0 ${width} ${height}`).attr('preserveAspectRatio', 'xMidYMid meet');
+    countries_gdp_svg.selectAll("*").remove();
 
-    // 1. Define Margins
-    const margin = { top: 50, right: 10, bottom: 10, left: 10 };
+    const margin = { top: 50, right: 20, bottom: 60, left: 20 };
 
-    const atlasColors = ["#e83761", "#5cbab3", "#c1fcf6", "#48817c"];
-    const colorScale = d3.scaleOrdinal(atlasColors);
-    
-    // Create the projection (without scale/translate yet)
-    const projection = d3.geoNaturalEarth1();
-    const path = d3.geoPath().projection(projection);
-    const g = svg.append("g");
-
-    const lowGdpMap = new Map();
+    const gdpMap = new Map();
     data.forEach(d => {
         const val = +d.gdp_per_capita;
-        if (!isNaN(val) && val <= 2000) {
-            lowGdpMap.set(d.country, val);
+        if (!isNaN(val)) {
+            let name = d.country;
+            // Manual overrides to match GeoJSON standards
+            if (name === "United States") name = "USA";
+            if (name === "Democratic Republic of the Congo") name = "Dem. Rep. Congo";
+            if (name === "Congo") name = "Republic of the Congo";
+            if (name === "Czechia") name = "Czech Republic";
+            
+            gdpMap.set(name, val);
         }
     });
 
-    const mapZoom = d3.zoom()
-        .scaleExtent([1, 8])
-        .on("zoom", (event) => {
-            g.attr("transform", event.transform);
-        });
+    const maxGdp = d3.max(Array.from(gdpMap.values())) || 100000;
+    const colorScale = d3.scaleSequential().domain([0, maxGdp]).interpolator(d3.interpolateBlues);
 
-    svg.call(mapZoom);
+    const projection = d3.geoNaturalEarth1();
+    const path = d3.geoPath().projection(projection);
+    const g = countries_gdp_svg.append("g");
+
+    const mapZoom = d3.zoom().scaleExtent([1, 8]).on("zoom", (event) => g.attr("transform", event.transform));
+    countries_gdp_svg.call(mapZoom);
 
     d3.json("https://raw.githubusercontent.com/holtzy/D3-graph-gallery/master/DATA/world.geojson").then(world => {
         
-        // 2. Automatically fit the map into the margin-defined box
         projection.fitExtent([
             [margin.left, margin.top], 
-            [width - margin.right, height - margin.bottom]
+            [width - margin.right, height - margin.bottom - 20]
         ], world);
 
         g.selectAll("path")
             .data(world.features)
             .join("path")
             .attr("d", path)
-            .attr("fill", (d, i) => {
-                const countryName = d.properties.name;
-                return lowGdpMap.has(countryName) ? colorScale(i) : "#f1f5f9";
+            .attr("fill", d => {
+                const val = gdpMap.get(d.properties.name);
+                return val ? colorScale(val) : "#f1f5f9";
             })
-            .attr("stroke", "#94a3b8")
+            .attr("stroke", "#cbd5e1")
             .attr("stroke-width", 0.5)
-            .style("cursor", d => lowGdpMap.has(d.properties.name) ? "pointer" : "default")
             .on("mouseover", function(event, d) {
-                const countryName = d.properties.name;
-                const gdpVal = lowGdpMap.get(countryName);
-                d3.select(this).attr("stroke", "#4338ca").attr("stroke-width", 1.5).raise();
-
+                const val = gdpMap.get(d.properties.name);
+                d3.select(this).attr("stroke", "#4338ca").attr("stroke-width", 1).raise();
                 tooltip.transition().duration(100).style("opacity", 1);
-                tooltip.html(`
-                    <div style="font-weight: bold; border-bottom: 1px solid #ddd; margin-bottom: 5px;">${countryName}</div>
-                    <div>GDP per Capita: ${gdpVal ? d3.format("$,.0f")(gdpVal) : '> $2000'}</div>
-                `);
+                tooltip.html(`<b>${d.properties.name}</b><br>GDP per Capita: ${val ? d3.format("$,.0f")(val) : 'No Data'}`);
             })
             .on("mousemove", (event) => {
-                tooltip.style("left", (event.pageX + 15) + "px")
-                       .style("top", (event.pageY - 28) + "px");
+                tooltip.style("left", (event.pageX + 15) + "px").style("top", (event.pageY - 28) + "px");
             })
             .on("mouseout", function() {
-                d3.select(this).attr("stroke", "#94a3b8").attr("stroke-width", 0.5);
+                d3.select(this).attr("stroke", "#cbd5e1").attr("stroke-width", 0.5);
                 tooltip.transition().duration(100).style("opacity", 0);
-            })
-            .on("click", (event, d) => {
-                const countryName = d.properties.name;
-                if (typeof onCountrySelect === "function") onCountrySelect(countryName);
             });
     });
 
-    // 3. Title is now safe above margin.top
-    svg.append('text')
-        .attr('x', width / 2)
-        .attr('y', 30) 
-        .attr('text-anchor', 'middle')
-        .attr('font-weight', 'bold')
-        .attr('font-size', '16px')
-        .text('Countries with GDP per Capita ≤ $2000');
-}
+    // Legend
+    const legendWidth = 200;
+    const legendHeight = 10;
+    const legendX = width / 2 - legendWidth / 2;
+    const legendY = height - 40;
 
+    const defs = countries_gdp_svg.append("defs");
+    const linearGradient = defs.append("linearGradient").attr("id", "gdp-gradient");
+
+    linearGradient.selectAll("stop")
+        .data(d3.range(11))
+        .join("stop")
+        .attr("offset", d => d * 10 + "%")
+        .attr("stop-color", d => colorScale(maxGdp * (d / 10)));
+
+    const legendGroup = countries_gdp_svg.append("g").attr("transform", `translate(${legendX}, ${legendY})`);
+
+    legendGroup.append("rect")
+        .attr("width", legendWidth)
+        .attr("height", legendHeight)
+        .style("fill", "url(#gdp-gradient)");
+
+    const legendScale = d3.scaleLinear().domain([0, maxGdp]).range([0, legendWidth]);
+    const legendAxis = d3.axisBottom(legendScale).ticks(3).tickFormat(d3.format("$.0s"));
+
+    legendGroup.append("g")
+        .attr("transform", `translate(0, ${legendHeight})`)
+        .call(legendAxis)
+        .select(".domain").remove();
+
+    countries_gdp_svg.append('text')
+        .attr('x', width / 2).attr('y', 30).attr('text-anchor', 'middle')
+        .attr('font-weight', 'bold').attr('font-size', '16px')
+        .text('World GDP per Capita Distribution');
+}
 
 // ───────────────────────────────────────────────
 // 7) Number of countries with gdp less and more than 2000
