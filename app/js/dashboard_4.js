@@ -13,9 +13,14 @@ function getCleanName(name) {
 }
 function draw_interactive_atlas(fullData, year, containerId, onCountrySelect) {
     const svg = d3.select(containerId);
-    const width = 1000; const height = 450;
+    const container = svg.node().parentNode;
+    const width = 1000; 
+    const height = 500;
     const tip = d3.select("#tooltip");
     svg.selectAll("*").remove();
+    svg.attr("viewBox", `0 0 ${width} ${height}`)
+       .attr("preserveAspectRatio", "xMidYMid meet")
+       .classed("w-full h-auto", true);
 
     // Atlas colors from homepage
     const atlasColors = ["#fef3c7", "#d1fae5", "#f67b7b", "#e0e7ff", "#f3e8ff", "#ffedd5"];
@@ -84,12 +89,10 @@ export function electricity_vs_cleancooking(csvPath, svgId, yearOverride) {
     d3.csv(csvPath).then(data => {
         // year from the slider, or default to the latest in data
         const currentYear = yearOverride || d3.max(data, d => +d.year);
-
         // count countries with GDP per capita <= 2000
         const poorCountries = data.filter(d => +d.year === currentYear && +d.gdp_per_capita <= 2000 && d.gdp_per_capita != "");
         const countDisplay = document.getElementById('poor-country-count');
         if (countDisplay) countDisplay.textContent = poorCountries.length;
-
         // auto select the largest gap
         const topCountry = [...poorCountries].sort((a,b) => {
             const gapA = (+a.access_to_electricity || 0) - (+a.access_to_clean_fuels_for_cooking || 0);
@@ -120,7 +123,11 @@ export function electricity_vs_cleancooking(csvPath, svgId, yearOverride) {
 function draw_gap_comparison(data, countryName, svgId, year) {
     const svg = d3.select(svgId);
     svg.selectAll("*").remove();
-    
+    const width = 800; 
+    const height = 500; 
+    const margin = { top: 80, right: 60, bottom: 60, left: 180 };
+
+    svg.attr("viewBox", `0 0 ${width} ${height}`);
     const stats = data.find(d => d.country === countryName && +d.year === year);
     if (!stats) return;
 
@@ -128,9 +135,6 @@ function draw_gap_comparison(data, countryName, svgId, year) {
         { name: "Electricity Access", val: +stats.access_to_electricity || 0, color: "#a5b4fc" },
         { name: "Clean Cooking Access", val: +stats.access_to_clean_fuels_for_cooking || 0, color:  "#d8b4fe"}
     ];
-
-    const width = 800; const height = 250;
-    const margin = { top: 60, right: 60, bottom: 60, left: 200 };
 
     const x = d3.scaleLinear().domain([0, 100]).range([margin.left, width - margin.right]);
     const y = d3.scaleBand().domain(metrics.map(m => m.name)).range([margin.top, height - margin.bottom]).padding(0.4);
@@ -159,8 +163,9 @@ function draw_historical_trend(data, countryName, svgId) {
     const history = data.filter(d => d.country === countryName).sort((a,b) => +a.year - +b.year);
     if (history.length === 0) return;
 
-    const width = 800; const height = 350;
-    const margin = { top: 60, right: 60, bottom: 60, left: 80 };
+    const width = 800; 
+    const height = 500;
+    const margin = { top: 80, right: 60, bottom: 80, left: 80 };
 
     const x = d3.scaleLinear().domain(d3.extent(history, d => +d.year)).range([margin.left, width - margin.right]);
     const y = d3.scaleLinear().domain([0, 100]).range([height - margin.bottom, margin.top]);
@@ -171,7 +176,6 @@ function draw_historical_trend(data, countryName, svgId) {
     
     svg.append("text").attr("x", width/2).attr("y", 30).attr("text-anchor", "middle").attr("class", "text-xl font-black")
        .text(`Trend: Clean Cooking Access in ${countryName}`);
-
     svg.append("g").attr("transform", `translate(0,${height - margin.bottom})`).call(d3.axisBottom(x).tickFormat(d3.format("d")));
     svg.append("g").attr("transform", `translate(${margin.left},0)`).call(d3.axisLeft(y).tickFormat(d => d + "%"));
 }

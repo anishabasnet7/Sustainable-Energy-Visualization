@@ -1,14 +1,17 @@
 export function draw_fossil_vs_lowcarbon(data_path, containerId, year, selectedCountry = null) {
     const svg = d3.select(containerId);
+    const container = svg.node().parentNode;
     const width = 1000;
-    const height = 450;
+    const height = 500;
     const margin = { top: 40, right: 150, bottom: 60, left: 180 };
 
     svg.selectAll("*").remove();
-    svg.attr("viewBox", `0 0 ${width} ${height}`);
+    svg.attr("viewBox", `0 0 ${width} ${height}`)
+       .attr("preserveAspectRatio", "xMidYMid meet")
+       .classed("w-full h-auto", true);
 
     d3.csv(data_path).then(data => {
-        // process Data & Calculate Percentages
+        // process Data & calculate %
         let yearData = data.filter(d => +d.year === year && d.country !== "World");
         
         yearData.forEach(d => {
@@ -20,7 +23,7 @@ export function draw_fossil_vs_lowcarbon(data_path, containerId, year, selectedC
             d.low_carbon_pct = total > 0 ? (lowCarbon / total) * 100 : 0;
         });
 
-        // show Top 10 and selected Country is visible
+        // show Top 10 and selected country is visible
         let displayData = yearData.sort((a, b) => b.low_carbon_pct - a.low_carbon_pct).slice(0, 10);
         
         if (selectedCountry) {
@@ -34,7 +37,7 @@ export function draw_fossil_vs_lowcarbon(data_path, containerId, year, selectedC
         const x = d3.scaleLinear().domain([0, 100]).range([margin.left, width - margin.right]);
         const y = d3.scaleBand().domain(displayData.map(d => d.country)).range([margin.top, height - margin.bottom]).padding(0.3);
 
-        // Bars (Stacked)
+        // Bars (stacked)
         const g = svg.append("g");
 
         // Fossil Part (Red)
@@ -47,7 +50,7 @@ export function draw_fossil_vs_lowcarbon(data_path, containerId, year, selectedC
             .attr("width", d => x(d.fossil_pct) - margin.left)
             .attr("fill", "#ef4444");
 
-        // Low Carbon Part (Green) - Stacks after Fossil
+        // Low Carbon Part (Green) - stack after Fossil
         g.selectAll(".bar-green")
             .data(displayData)
             .join("rect")
@@ -57,7 +60,7 @@ export function draw_fossil_vs_lowcarbon(data_path, containerId, year, selectedC
             .attr("width", d => x(d.fossil_pct + d.low_carbon_pct) - x(d.fossil_pct))
             .attr("fill", "#22c55e");
 
-        // Labels
+        // Label
         g.selectAll(".pct-label")
             .data(displayData)
             .join("text")
@@ -74,7 +77,7 @@ export function draw_fossil_vs_lowcarbon(data_path, containerId, year, selectedC
             .style("font-weight", d => d === selectedCountry ? "900" : "normal")
             .style("fill", d => d === selectedCountry ? "#065f46" : "#374151");
         
-        // Legend
+        // legend
         const legend = svg.append("g").attr("transform", `translate(${width/2 - 100}, 15)`);
         legend.append("rect").attr("width", 15).attr("height", 15).attr("fill", "#ef4444");
         legend.append("text").attr("x", 20).attr("y", 12).text("Fossil").attr("class", "text-xs");

@@ -98,13 +98,26 @@ const dashboardConfigs = {
     
 };
 
-/* Clears the UI slots before loading new charts */
+/* Clear UI slots before loading new chart */
 function resetChartSlots() {
+    const d4Controls = document.getElementById('dashboard-4-extra-controls');
+    const d5Controls = document.getElementById('dashboard-5-extra-controls');
+    if (d4Controls) d4Controls.classList.add('hidden');
+    if (d5Controls) d5Controls.classList.add('hidden');
+    if(document.getElementById('poor-country-count')) document.getElementById('poor-country-count').textContent = "0";
+    if(document.getElementById('selected-country-5')) document.getElementById('selected-country-5').textContent = "Global Top 10";
     for (let i = 1; i <= 5; i++) {
         const slot = document.getElementById(`chart-slot-${i}`);
+        const title = document.getElementById(`title-slot-${i}`);
+        const svg = d3.select(`#svg-slot-${i}`);
         if (slot) {
             slot.classList.add('hidden');
-            d3.select(`#svg-slot-${i}`).selectAll("*").remove(); 
+        }
+        if (title) {
+            title.textContent = ""; 
+        }
+        if (svg) {
+            svg.selectAll("*").remove();
         }
     }
 }
@@ -192,7 +205,7 @@ function draw_interactive_atlas_d5(csvPath, containerId) {
     });
 }
 
-// Event Listeners
+// Event Listener
 document.addEventListener('DOMContentLoaded', function() {
     const selector = document.getElementById('dashboard-selector');
     const homeLink = document.getElementById('home-link');

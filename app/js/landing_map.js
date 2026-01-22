@@ -80,7 +80,7 @@ export function draw_landing_map(csvPath, containerId) {
                 console.log("Navigating to:", selectedCountry);
             });
 
-        // Centered Footer
+        //centered Footer
         svg.append("text")
             .attr("x", width / 2)
             .attr("y", height - 10)
