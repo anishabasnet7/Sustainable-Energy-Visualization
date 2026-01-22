@@ -18,7 +18,7 @@ function draw_interactive_atlas(fullData, year, containerId, onCountrySelect) {
     svg.selectAll("*").remove();
 
     // Atlas colors from homepage
-    const atlasColors = ["#fef3c7", "#d1fae5", "#fee2e2", "#e0e7ff", "#f3e8ff", "#ffedd5"];
+    const atlasColors = ["#fef3c7", "#d1fae5", "#f67b7b", "#e0e7ff", "#f3e8ff", "#ffedd5"];
     const colorScale = d3.scaleOrdinal(atlasColors);
     const projection = d3.geoNaturalEarth1().scale(175).translate([width / 2, height / 2.2]);
     const path = d3.geoPath().projection(projection);
