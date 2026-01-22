@@ -210,7 +210,6 @@ function update_top_10_countries_co2_emission(data) {
 
     top_10_countries_co2_emission_svg.attr('viewBox', `0 0 ${width} ${height}`).attr('preserveAspectRatio', 'xMidYMid meet');
 
-    // Increase bottom margin to accommodate rotated country labels
     const margin = { top: 70, right: 20, bottom: 80, left: 70 };
     const innerWidth = width - margin.left - margin.right;
     const innerHeight = height - margin.top - margin.bottom;
@@ -229,7 +228,6 @@ function update_top_10_countries_co2_emission(data) {
     const g = top_10_countries_co2_emission_svg.append("g")
         .attr("transform", `translate(${margin.left},${margin.top})`);
 
-    // Aggregating data - note the variable name change to 'topData' to avoid conflict with parameter 'data'
     const aggregatedData = d3.rollup(
         data,
         v => d3.sum(v, d => +d.total_co2_emissions / 1000000000), 
@@ -565,7 +563,7 @@ function update_no_countries_with_gdp_less_than_2000(data) {
         .attr('font-weight', 'bold')
         .attr('font-size', '14px')
         .attr('fill', '#1f2937')
-        .text('Total Countries with GDP ≤ $2000');
+        .text('Number of Countries with GDP ≤ $2000');
 
     // 3. Add the Big Number in the center
     no_countries_with_gdp_less_than_2000_svg.append('text')
@@ -584,7 +582,7 @@ function update_no_countries_with_gdp_less_than_2000(data) {
         .attr('text-anchor', 'middle')
         .attr('font-size', '12px')
         .attr('fill', '#6b7280')
-        .text('Unique Countries Identified');
+        .text('Countries');
 }
 
 function update_no_countries_with_gdp_more_than_2000(data) {
@@ -596,7 +594,7 @@ function update_no_countries_with_gdp_more_than_2000(data) {
     const height = container.clientHeight;
 
     if (width === 0 || height === 0) {
-        requestAnimationFrame(() => update_no_countries_with_gdp_less_than_2000(data));
+        requestAnimationFrame(() => update_no_countries_with_gdp_more_than_2000(data));
         return;
     }
 
@@ -604,11 +602,11 @@ function update_no_countries_with_gdp_more_than_2000(data) {
     no_countries_with_gdp_more_than_2000_svg.selectAll("*").remove();
 
     // 1. Calculate unique count of countries with GDP > 2000
-    const lowGdpCountries = new Set(
+    const highGdpCountries = new Set(
         data.filter(d => !isNaN(+d.gdp_per_capita) && +d.gdp_per_capita > 2000)
             .map(d => d.country)
     );
-    const count = lowGdpCountries.size;
+    const count = highGdpCountries.size;
 
     // 2. Add Title on top
     no_countries_with_gdp_more_than_2000_svg.append('text')
@@ -618,7 +616,7 @@ function update_no_countries_with_gdp_more_than_2000(data) {
         .attr('font-weight', 'bold')
         .attr('font-size', '14px')
         .attr('fill', '#1f2937')
-        .text('Total Countries with GDP > $2000');
+        .text('Number of Countries with GDP > $2000');
 
     // 3. Add the Big Number in the center
     no_countries_with_gdp_more_than_2000_svg.append('text')
@@ -637,10 +635,9 @@ function update_no_countries_with_gdp_more_than_2000(data) {
         .attr('text-anchor', 'middle')
         .attr('font-size', '12px')
         .attr('fill', '#6b7280')
-        .text('Unique Countries Identified');
+        .text('Countries');
 }
 
-//comparison_of_greenest_svg
 // ───────────────────────────────────────────────
 // 8) Comparison on Greenest
 // ───────────────────────────────────────────────
@@ -660,7 +657,6 @@ function update_comparison_of_greenest(data, selectedCountry = null) {
     comparison_of_greenest_svg.attr("viewBox", `0 0 ${width} ${height}`).attr('preserveAspectRatio', 'xMidYMid meet');
     comparison_of_greenest_svg.selectAll("*").remove();
 
-    // Setup Tooltip Div (if it doesn't exist)
     let tooltip = d3.select("body").select(".chart-tooltip");
     if (tooltip.empty()) {
         tooltip = d3.select("body").append("div")

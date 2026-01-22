@@ -18,72 +18,72 @@
 }
 
 #controls {
-    margin-top: 6px;
-    margin-bottom: 6px;
-    padding: 5px;
+    height: 50px; 
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    padding: 0 10px;
+    background: #fff;
+    border-bottom: 1px solid #ddd;
+    position: sticky;
+    top: 60px;
+    z-index: 900;
 }
 
-#dashboard-row-1 {
-    flex: 1;
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
-    grid-template-rows: 1fr;
-    gap: 10px;
-    padding: 0px 10px 10px 10px;
-    box-sizing: border-box;
-}
-
+#dashboard-row-1, 
 #dashboard-row-2 {
-    flex: 1;
     display: grid;
-    grid-template-columns: 2fr 1fr 2fr;
-    grid-template-rows: 1fr;
     gap: 10px;
-    padding: 0px 10px 10px 10px;
+    padding: 10px;
     box-sizing: border-box;
+    height: calc(50vh - 25px);
+}
+
+@media (min-width: 768px) {
+    #dashboard-row-1 {
+        grid-template-columns: 1fr 1fr 1fr;
+    }
+    #dashboard-row-2 {
+        grid-template-columns: 2fr 1fr 2fr;
+    }
 }
 
 .chart-container {
     position: relative;
     width: 100%;
-    height: 100%;
-    border: 1px solid #ddd;
+    height: 100%; 
+    min-height: 0; 
     background: #fafafa;
-    min-height: 300px;
+    border: 1px solid #ddd;
 }
 
 .chart-container-vertical {
-    position: relative;
+    height: calc(50% - 5px); 
     width: 100%;
-    height: 50%;
-    border: 1px solid #ddd;
     background: #fafafa;
-    min-height: 150px;
+    border: 1px solid #ddd;
 }
 
-.chart-panel h2 {
-    margin-bottom: 4px;
+.chart-container:has(.chart-container-vertical) {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    border: none;
+    background: transparent;
 }
 
-#controls label {
-    margin: 0 5px;
-}
-
-#controls select,
-#controls input {
-    margin-right: 20px;
-    width: 100px;
+#region-select{
+    margin-right: 15px;
 }
 
 .navbar {
     position: sticky;
     top: 0;
     z-index: 1000;
-
     background: rgba(255, 255, 255, 0.90);
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
-
+    height: 60px;
     border-bottom: 1px solid #eaeaea;
 }
 
@@ -91,7 +91,6 @@
     max-width: 1100px;
     margin: 0 auto;
     padding: 10px 14px;
-
     display: flex;
     align-items: center;
     justify-content: space-between;
