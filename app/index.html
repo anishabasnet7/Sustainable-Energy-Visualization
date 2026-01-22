@@ -8,101 +8,65 @@
     <script src="https://d3js.org/d3.v7.min.js"></script>
 </head>
 
-<body class="bg-gray-100 font-sans leading-normal tracking-normal min-h-screen">
+<body class="bg-gray-100 font-sans leading-normal tracking-normal">
+    <nav class="navbar">
+        <div class="nav-inner">
+            <a class="nav-brand" href="index.html">
+                <span class="nav-dot"></span>
+                Global Sustainable Energy
+            </a>
 
-    <main id="main-content" class="container mx-auto px-4 md:px-10 py-6 max-w-[1400px]">
+            <div class="nav-right">
+                <ul class="nav-links">
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="user_stories.html">Stories</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div id="controls">
+        <label class="font-bold text-indigo-900 whitespace-nowrap" for="region-select">Region:</label>
+        <select id="region-select"></select>
+        <label class="font-bold text-indigo-900 whitespace-nowrap" for="year-select">Select Year:</label>
+        <select id="year-select"></select>
         
-        <!-- Header -->
-        <header class="text-center mb-6">
-            <h1 id="main-header-title" class="text-4xl font-black text-gray-900 mb-1">Global Data on Sustainable Energy</h1>
-            <p class="text-gray-500 font-medium italic">Prepared by Anisha Basnet & Yusnardo Tendio</p>
-        </header>
+    </div>
 
-        <!--Navigation -->
-        <div id="map-controls" class="mb-8 p-6 bg-white shadow-md rounded-xl border-t-4 border-indigo-500">
-            <div class="flex flex-col w-full">
-                <label class="text-xs font-bold text-indigo-900 uppercase tracking-widest mb-2">Select User Story</label>
-                <select id="dashboard-selector" class="w-full p-3 border-2 border-indigo-100 rounded-lg bg-gray-50 text-indigo-900 font-bold focus:ring-2 focus:ring-indigo-500 outline-none transition-all cursor-pointer">
-                    <option value="none">🌎 World Map</option>
-                    <option value="dashboard-1">Story 1: CO2 Emissions Trend</option>
-                    <option value="dashboard-2">Story 2: Germany's Renewable Growth</option>
-                    <option value="dashboard-3">Story 3: GDP vs Energy Consumption</option>
-                    <option value="dashboard-4">Story 4: Energy Access Gap (GDP < 2000)</option>
-                    <option value="dashboard-5">Story 5: Energy Leadership</option>
-                </select>
+    <div id="dashboard-row-1">
+        <div class="chart-container">
+            <svg id="correlation_energy_consumption_gdp_per_capita"></svg>
+        </div>
+
+        <div class="chart-container">
+            <svg id="co2_trend"></svg>
+        </div>
+        
+        <div class="chart-container">
+            <svg id="top_10_countries_co2_emission"></svg>
+        </div>
+    </div>
+
+        
+    <div id="dashboard-row-2">
+        <div class="chart-container">
+            <svg id="countries_with_gdp_less_than_2000"></svg>
+        </div>
+
+        <div class="chart-container">
+            <div class="chart-container-vertical">
+                <svg id="no_countries_with_gdp_less_than_2000"></svg>
+            </div>
+            <div class="chart-container-vertical">
+                <svg id="no_countries_with_gdp_more_than_2000"></svg>
             </div>
         </div>
 
-        <!-- Visualization -->
-        <section class="bg-white p-6 md:p-8 rounded-2xl shadow-2xl border border-gray-200 mb-8">
-            <h2 id="viz-panel-title" class="text-2xl font-black text-gray-800 mb-6 border-b pb-2">Global Overview</h2>
-            
-            <div id="visualization-container" class="space-y-10">
-                
-                <!-- Slot 1 (Full Width) -->
-                <div id="chart-slot-1" class="hidden">
-                    <h3 id="title-slot-1" class="text-lg font-bold text-gray-700 mb-3"></h3>
-                    <div class="bg-gray-50 rounded-xl border border-gray-200 p-2">
-                        <!-- Map/Main Chart -->
-                        <svg id="svg-slot-1" viewBox="0 0 1000 500" class="w-full h-auto"></svg>
-                    </div>
-                </div>
+        <div class="chart-container">
+            <svg id="comparison_of_greenest"></svg>
+        </div>
+    </div>
 
-                <!-- Dashboard 4 Controls -->
-                <div id="dashboard-4-extra-controls" class="hidden bg-indigo-50 p-4 rounded-xl border border-indigo-100 flex flex-col md:flex-row items-center justify-between gap-4">
-                    <div class="flex items-center gap-4 w-full md:w-2/3">
-                        <label class="font-bold text-indigo-900 whitespace-nowrap">Year: <span id="year-display">2020</span></label>
-                        <input type="range" id="year-slider" min="2000" max="2020" value="2020" class="w-full accent-indigo-600">
-                    </div>
-                    <div class="bg-white px-4 py-2 rounded-lg shadow-sm border border-indigo-200">
-                        <span class="text-xs text-gray-400 font-bold uppercase">GDP ≤ $2000:</span>
-                        <span id="poor-country-count" class="text-xl font-black text-indigo-700 ml-2">0</span>
-                    </div>
-                </div>
-
-                <!-- Dashboard 5 Controls -->
-                <div id="dashboard-5-extra-controls" class="hidden bg-emerald-50 p-4 rounded-xl border border-emerald-100 flex flex-col md:flex-row items-center justify-between gap-4">
-                    <div class="flex items-center gap-4 w-full md:w-2/3">
-                        <label class="font-bold text-emerald-900 whitespace-nowrap">Year: <span id="year-display-5">2020</span></label>
-                        <input type="range" id="year-slider-5" min="2000" max="2020" value="2020" class="w-full accent-emerald-600">
-                    </div>
-                    <div class="bg-white px-4 py-2 rounded-lg shadow-sm border border-emerald-200">
-                        <span id="selected-country-5" class="text-lg font-black text-emerald-700">Global Top 10</span>
-                    </div>
-                </div>
-
-                <!-- Slots 2 & 3 -->
-                <div id="extra-charts-row" class="flex flex-col md:flex-row gap-8 items-stretch">
-                    <!-- If Slot 3 is hidden, flex-1 makes Slot 2 take 100% of the 1400px width -->
-                    <div id="chart-slot-2" class="hidden flex-1 flex flex-col">
-                        <h3 id="title-slot-2" class="text-lg font-bold text-gray-700 mb-3"></h3>
-                        <div class="bg-gray-50 rounded-xl p-4 border border-gray-200 flex-grow">
-                            <svg id="svg-slot-2" viewBox="0 0 800 450" preserveAspectRatio="xMidYMid meet" class="w-full h-auto"></svg>
-                        </div>
-                    </div>
-
-                    <div id="chart-slot-3" class="hidden flex-1 flex flex-col">
-                        <h3 id="title-slot-3" class="text-lg font-bold text-gray-700 mb-3"></h3>
-                        <div class="bg-gray-50 rounded-xl p-4 border border-gray-200 flex-grow">
-                            <svg id="svg-slot-3" viewBox="0 0 800 450" preserveAspectRatio="xMidYMid meet" class="w-full h-auto"></svg>
-                        </div>
-                    </div>
-                </div>
-
-            </div>
-        </section>
-
-        <!-- Interpretation -->
-        <section class="bg-indigo-900 text-white p-8 rounded-2xl shadow-xl">
-            <h2 id="viz-explanation-title" class="text-xl font-bold mb-4 text-indigo-300 uppercase tracking-widest border-b border-indigo-800 pb-2">Interpretation</h2>
-            <div id="viz-explanation-text" class="text-indigo-50 leading-relaxed text-lg italic">
-                Select a user story from the dropdown above to view the analysis.
-            </div>
-        </section>
-
-        <div id="tooltip" class="fixed p-3 bg-gray-900 text-white rounded shadow-2xl pointer-events-none opacity-0 z-50 text-sm border border-indigo-400"></div>
-
-    </main>
-    <script type="module" src="js/main.js"></script>
+<script type="module" src="js/dashboard.js"></script>
 </body>
 </html>
