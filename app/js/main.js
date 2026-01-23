@@ -69,7 +69,12 @@ const dashboardConfigs = {
    'dashboard-4': {
         title: 'Access Gap (GDP ≤ 2000)',
         explanationTitle: 'Jane Doe\'s Analysis: Clean Cooking vs Electricity',
-        explanation: `<p>This map only highlights the countries with GDP less than 2000. In first, the visual of country with highest GDP difference is displayed and when we select the country, we can see the visual of the selected country. The linechart shows the trend over the years.</p>`,
+        explanation: `
+        <p>
+        This map display the countries with GDP greater than 2000 using d3.interpolateBlues and countries with lower GDP are outlined with a border stroke. 
+        Initially, the secondary visuals show a country with lowest GDP of that year, and when a country is selected, its specific data diagrams are displayed. 
+        The accompanying line chart shows trend over the years to compare energy access over time.
+        </p>`,
         charts: [
             { title: 'GDP Interactive Map (Click a country)', 
                 drawFunction: (path, id) => electricity_vs_cleancooking(path, id), 
@@ -79,8 +84,13 @@ const dashboardConfigs = {
     'dashboard-5': {
     title: 'Energy: Fossil vs Renewable Energy',
     explanationTitle: 'John Smith\'s Analysis',
-    explanation: `<p>Select a country from the map and slider to change the year. The chart will show the comparison - Red is for Fossil Fuels and Green is for Low-Carbon (Renewables + Nuclear).
-    By default, it shows the Top 10 Leaders (greenest countries). But, on click a country in the map, that specific country is added into the list.</p>`,
+    explanation: 
+    `<p>
+    Select a country from the map and use the slider to change the year. The chart will show a comparison between energy sources.
+    Sky / cornflower blue (#67acd4) represent fossil fuels and light pastel / baby blue (#a5cce5) represent low-carbon energy (renewables + nuclear). 
+    By default, chart display Top 10 Leaders— greenest countries in low-carbon energy share. 
+    When a country on the map is clicked, that specific country is added to the list, allowing users to compare its energy with the default Top 10.
+    </p>`,
     charts: [
         { 
             title: 'Percentage of Renewable Energy Interactive Map (Click a country)', 
