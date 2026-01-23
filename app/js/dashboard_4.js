@@ -58,7 +58,7 @@ function draw_interactive_atlas(fullData, year, containerId, onCountrySelect) {
 
     svg.call(zoom);
 
-    // Helper to handle the specific name mapping you requested
+    // Helper to handle the specific name mapping
     const mapCountryName = (name) => {
         let n = getCleanName(name);
         if (n === "United States" || n === "United States of America") return "USA";
@@ -72,7 +72,7 @@ function draw_interactive_atlas(fullData, year, containerId, onCountrySelect) {
         const yearData = fullData.filter(d => +d.year === year);
         const dataMap = new Map();
         
-        // When building the map, apply the same naming logic to your data
+        // When building the map, apply the same naming logic to data
         yearData.forEach(d => {
             const mappedName = mapCountryName(d.country);
             dataMap.set(mappedName, d);

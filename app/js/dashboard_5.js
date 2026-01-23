@@ -4,7 +4,7 @@ export function draw_fossil_vs_lowcarbon(data_path, containerId, year, selectedC
     const height = 500;
     const margin = { top: 40, right: 150, bottom: 60, left: 180 };
 
-    // Tooltip initialization
+    // tooltip init
     d3.select("#chart-tooltip").remove();
     const tip = d3.select("body").append("div")
         .attr("id", "chart-tooltip")
@@ -46,7 +46,7 @@ export function draw_fossil_vs_lowcarbon(data_path, containerId, year, selectedC
 
         const g = svg.append("g");
 
-        // Helper for mouse events to avoid repetition
+        // helper for mouse events to avoid repetition
         const showTooltip = (event, d) => {
             tip.style("opacity", 1)
                .html(`
