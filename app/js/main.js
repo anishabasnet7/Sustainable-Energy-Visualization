@@ -77,13 +77,13 @@ const dashboardConfigs = {
         ]
     },
     'dashboard-5': {
-    title: 'Energy: Fossil vs Low-Carbon',
+    title: 'Energy: Fossil vs Renewable Energy',
     explanationTitle: 'John Smith\'s Analysis',
     explanation: `<p>Select a country from the map and slider to change the year. The chart will show the comparison - Red is for Fossil Fuels and Green is for Low-Carbon (Renewables + Nuclear).
     By default, it shows the Top 10 Leaders (greenest countries). But, on click a country in the map, that specific country is added into the list.</p>`,
     charts: [
         { 
-            title: 'Percentage of Low carbon Energy Interactive Map (Click a country)', 
+            title: 'Percentage of Renewable Energy Interactive Map (Click a country)', 
             drawFunction: (path, id) => draw_interactive_atlas_d5(path, id), 
             data_path: DATA_PATH 
         },
@@ -232,7 +232,7 @@ function draw_interactive_atlas_d5(csvPath, containerId) {
                 const name = d.properties.name === "United States of America" ? "United States" : d.properties.name;
                 const val = dataMap.get(name);
                 d3.select(this).attr("stroke", "#67acd4").attr("stroke-width", 2).raise();
-                tip.style("opacity", 1).html(`<strong>${name}</strong><br>Low Carbon Energy: ${val ? Math.round(val).toLocaleString() + ' %' : 'No Data'} <br><span style="color: #67acd4;">Click to analyze energy mix</span>`);
+                tip.style("opacity", 1).html(`<strong>${name}</strong><br>Renewable Energy: ${val ? Math.round(val).toLocaleString() + ' %' : 'No Data'} <br><span style="color: #67acd4;">Click to analyze energy mix</span>`);
             })
             .on("mousemove", (event) => tip.style("left", (event.pageX + 15) + "px").style("top", (event.pageY - 28) + "px"))
             .on("mouseout", function() {

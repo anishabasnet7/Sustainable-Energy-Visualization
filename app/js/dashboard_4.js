@@ -113,10 +113,10 @@ function draw_interactive_atlas(fullData, year, containerId, onCountrySelect) {
                 tip.transition().duration(100).style("opacity", 1);
                 tip.html(`
                     <div class="font-bold border-b mb-1">${cleanName}</div>
-                    <div class="text-xs">GDP: ${stats ? '$' + Math.round(stats.gdp_per_capita).toLocaleString() : 'No Data'}</div>
+                    <div class="text-xs">GDP per Capita: ${stats ? '$' + Math.round(stats.gdp_per_capita).toLocaleString() : 'No Data'}</div>
                     ${(stats && +stats.gdp_per_capita <= 2000) ? 
                         '<div class="text-[10px] text-indigo-600 font-bold mt-1">Click to analyze access gap</div>' : 
-                        '<div class="text-[10px] text-gray-400">GDP > $2000</div>'}
+                        '<div class="text-[10px] text-gray-400">GDP per Capita > $2000</div>'}
                 `);
             })
             .on("mousemove", (event) => tip.style("left", (event.pageX + 15) + "px").style("top", (event.pageY - 28) + "px"))
