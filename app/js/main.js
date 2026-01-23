@@ -71,7 +71,7 @@ const dashboardConfigs = {
         explanationTitle: 'Jane Doe\'s Analysis: Clean Cooking vs Electricity',
         explanation: `<p>This map only highlights the countries with GDP less than 2000. In first, the visual of country with highest GDP difference is displayed and when we select the country, we can see the visual of the selected country. The linechart shows the trend over the years.</p>`,
         charts: [
-            { title: 'Interactive Map (Click a country)', 
+            { title: 'GDP Interactive Map (Click a country)', 
                 drawFunction: (path, id) => electricity_vs_cleancooking(path, id), 
                 data_path: DATA_PATH }
         ]
@@ -83,7 +83,7 @@ const dashboardConfigs = {
     By default, it shows the Top 10 Leaders (greenest countries). But, on click a country in the map, that specific country is added into the list.</p>`,
     charts: [
         { 
-            title: 'Interactive Map (Click a country)', 
+            title: 'Percentage of Low carbon Energy Interactive Map (Click a country)', 
             drawFunction: (path, id) => draw_interactive_atlas_d5(path, id), 
             data_path: DATA_PATH 
         },
@@ -174,38 +174,121 @@ if (id === 'dashboard-5') {
 // Implement the map function in main.js
 function draw_interactive_atlas_d5(csvPath, containerId) {
     const svg = d3.select(containerId);
-    const width = 1000; const height = 450;
-    const tip = d3.select("#tooltip");
+    const width = 1000; 
+    const height = 500; 
+
+    d3.select("#chart-tooltip_d5").remove();
+    const tip = d3.select("body").append("div")
+        .attr("id", "chart-tooltip_d5")
+        .style("position", "absolute").style("z-index", "9999").style("opacity", 0)
+        .style("background", "white").style("padding", "10px").style("border", "2px solid #67acd4")
+        .style("border-radius", "8px").style("pointer-events", "none")
+        .style("font-family", "sans-serif").style("font-size", "12px")
+        .style("box-shadow", "0 4px 10px rgba(0,0,0,0.1)");
+
     svg.selectAll("*").remove();
+    
+    svg.attr("viewBox", `0 0 ${width} ${height}`)
+       .attr("preserveAspectRatio", "xMidYMid meet");
+
+    const g = svg.append("g");
     const projection = d3.geoNaturalEarth1().scale(170).translate([width / 2, height / 2]);
     const path = d3.geoPath().projection(projection);
-    const colorScale = d3.scaleSequential()
-        .domain([0, 100000])
-        .interpolator(d3.interpolateBlues);
 
-    d3.json("https://raw.githubusercontent.com/holtzy/D3-graph-gallery/master/DATA/world.geojson").then(world => {
-        svg.append("g").selectAll("path")
+    const zoom = d3.zoom().scaleExtent([-5, 8]).on("zoom", (event) => g.attr("transform", event.transform));
+    svg.call(zoom);
+
+    Promise.all([
+        d3.json("https://raw.githubusercontent.com/holtzy/D3-graph-gallery/master/DATA/world.geojson"),
+        d3.csv(csvPath)
+    ]).then(([world, data]) => {
+        const yearData = data.filter(d => +d.year === selectedD5Year);
+        const dataMap = new Map(yearData.map(d => {
+            let name = d.country;
+            
+            if (name === "United States") name = "USA";
+            if (name === "Democratic Republic of the Congo") name = "Dem. Rep. Congo";
+            if (name === "Congo") name = "Republic of the Congo";
+            if (name === "Czechia") name = "Czech Republic";
+            
+            return [name, +d.low_carbon_electricity_percentage];
+        }));
+        
+        const maxVal = d3.max(yearData, d => +d.low_carbon_electricity_percentage) || 100000;
+        const colorScale = d3.scaleSequential(d3.interpolateBlues).domain([0, maxVal]);
+
+        g.selectAll("path")
             .data(world.features)
             .join("path")
             .attr("d", path)
-            .attr("fill", (d, i) => colorScale(i))
-            .attr("stroke", "#a5cce5")
-            .style("cursor", "pointer")
-            .on("mouseover", function() { 
-                d3.select(this).attr("fill", "#67acd4").attr("stroke-width", 2).raise(); 
+            .attr("fill", d => {
+                const name = d.properties.name === "United States of America" ? "United States" : d.properties.name;
+                const val = dataMap.get(name);
+                return val ? colorScale(val) : "#f1f5f9";
             })
-            .on("mouseout", function(event, d) { 
-                const i = world.features.indexOf(d);
-                d3.select(this).attr("fill", colorScale(i)).attr("stroke-width", 1); 
+            .attr("stroke", "#cbd5e1")
+            .style("cursor", "pointer")
+            .on("mouseover", function(event, d) {
+                const name = d.properties.name === "United States of America" ? "United States" : d.properties.name;
+                const val = dataMap.get(name);
+                d3.select(this).attr("stroke", "#67acd4").attr("stroke-width", 2).raise();
+                tip.style("opacity", 1).html(`<strong>${name}</strong><br>Low Carbon Energy: ${val ? Math.round(val).toLocaleString() + ' %' : 'No Data'} <br><span style="color: #67acd4;">Click to analyze energy mix</span>`);
+            })
+            .on("mousemove", (event) => tip.style("left", (event.pageX + 15) + "px").style("top", (event.pageY - 28) + "px"))
+            .on("mouseout", function() {
+                d3.select(this).attr("stroke", "#cbd5e1").attr("stroke-width", 1);
+                tip.style("opacity", 0);
             })
             .on("click", (event, d) => {
-                const countryName = d.properties.name === "United States of America" ? "United States" : d.properties.name;
-                selectedD5Country = countryName;
-                document.getElementById('selected-country-5').textContent = countryName;
-                
-                // Redraw ONLY the bar chart slot
-                draw_fossil_vs_lowcarbon(DATA_PATH, "#svg-slot-2", selectedD5Year, selectedD5Country);
+                const name = d.properties.name === "United States of America" ? "United States" : d.properties.name;
+                selectedD5Country = name;
+                const label = document.getElementById('selected-country-5');
+                if (label) label.textContent = name;
+                draw_fossil_vs_lowcarbon(csvPath, "#svg-slot-2", selectedD5Year, selectedD5Country);
             });
+
+        const legendWidth = 200;
+        const legendHeight = 12;
+        const legendX = width - legendWidth - 50;
+        const legendY = height - 60;
+
+        const legendContainer = svg.append("g")
+            .attr("class", "legend")
+            .attr("transform", `translate(${legendX}, ${legendY})`);
+
+        const defs = svg.append("defs");
+        const linearGradient = defs.append("linearGradient").attr("id", "energy-gradient-d5");
+        linearGradient.selectAll("stop")
+            .data(d3.range(0, 1.1, 0.1))
+            .join("stop")
+            .attr("offset", d => `${d * 100}%`)
+            .attr("stop-color", d => d3.interpolateBlues(d));
+
+        legendContainer.append("rect")
+            .attr("width", legendWidth)
+            .attr("height", legendHeight)
+            .style("fill", "url(#energy-gradient-d5)")
+            .style("stroke", "#cbd5e1");
+
+        legendContainer.append("text")
+            .attr("x", 0)
+            .attr("y", -8)
+            .style("font-size", "11px")
+            .style("font-weight", "bold")
+            .text("Low Carbon Energy (%)");
+
+        legendContainer.append("text")
+            .attr("x", 0)
+            .attr("y", legendHeight + 15)
+            .style("font-size", "10px")
+            .text("0");
+
+        legendContainer.append("text")
+            .attr("x", legendWidth)
+            .attr("y", legendHeight + 15)
+            .attr("text-anchor", "end")
+            .style("font-size", "10px")
+            .text(Math.round(maxVal).toLocaleString());
     });
 }
 
