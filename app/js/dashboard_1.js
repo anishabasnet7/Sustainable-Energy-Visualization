@@ -204,7 +204,7 @@ export function draw_top10_co2_emiters(data_path, containerId = '#d3-chart') {
             .attr("fill", "#67acd4") 
             .attr("rx", 4)
             .on("mouseover", function(event, d) {
-                d3.select(this).attr("fill", "#000"); // Highlight black
+                d3.select(this).style("opacity", 0.5);
                 tooltip2.transition().duration(200).style("opacity", 1);
                 tooltip2.html(`<strong>Country:</strong> ${d.country}<br><strong>Total Emissions:</strong> ${d3.format(".3s")(d.total_emission)}`);
                 const scrollX = window.scrollX || window.pageXOffset;
@@ -212,7 +212,7 @@ export function draw_top10_co2_emiters(data_path, containerId = '#d3-chart') {
                 tooltip2.style("left", (event.clientX + scrollX + 15) + "px").style("top", (event.clientY + scrollY - 28) + "px");
             })
             .on("mouseout", function() {
-                d3.select(this).attr("fill", "#67acd4");
+                d3.select(this).style("opacity", 1);
                 tooltip2.transition().duration(100).style("opacity", 0);
             })
             .transition()

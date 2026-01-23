@@ -156,7 +156,7 @@ function update_co2_trend(data) {
     g.append("path")
         .datum(chartData)
         .attr("fill", "none")
-        .attr("stroke", "#ef4444")
+        .attr("stroke", "#67acd4")
         .attr("stroke-width", 3)
         .attr("d", line);
 
@@ -175,9 +175,11 @@ function update_co2_trend(data) {
         .attr("cx", d => x(d.year))
         .attr("cy", d => y(d.total_emission))
         .attr("r", 5) 
-        .attr("fill", "#ef4444")
+        .attr("fill", "#67acd4")
         .on("mouseover", function(event, d) {
-            d3.select(this).attr("r", 7).attr("fill", "#10b981"); 
+            d3.select(this)
+                    .attr("r", 8)
+                    .attr("fill", "#000"); 
             tooltip.style("opacity", 1)
                    .html(`<strong>Year:</strong> ${d.year}<br><strong>Emissions:</strong> ${d3.format(".3s")(d.total_emission)}`);
         })
@@ -186,7 +188,7 @@ function update_co2_trend(data) {
                    .style("top", (event.pageY - 28) + "px");
         })
         .on("mouseout", function() {
-            d3.select(this).attr("r", 5).attr("fill", "#ef4444");
+            d3.select(this).attr("r", 5).attr("fill", "#67acd4");
             tooltip.style("opacity", 0);
         });
 }
@@ -273,10 +275,10 @@ function update_top_10_countries_co2_emission(data) {
         .attr("y", innerHeight)
         .attr("width", x.bandwidth())
         .attr("height", 0)
-        .attr("fill", "#4f46e5") 
+        .attr("fill", "#67acd4") 
         .attr("rx", 4)
         .on("mouseover", function(event, d) {
-            d3.select(this).attr("fill", "#3730a3"); 
+            d3.select(this).style("opacity", 0.5);
             tooltip.style("opacity", 1)
                    .html(`<strong>Country:</strong> ${d.country}<br><strong>Emissions:</strong> ${d3.format(".3s")(d.total_emission)}`);
         })
@@ -285,7 +287,7 @@ function update_top_10_countries_co2_emission(data) {
                    .style("top", (event.pageY - 28) + "px");
         })
         .on("mouseout", function() {
-            d3.select(this).attr("fill", "#4f46e5");
+            d3.select(this).style("opacity", 1);
             tooltip.style("opacity", 0);
         })
         .transition()
@@ -375,9 +377,9 @@ function update_correlation_energy_consumption_gdp_per_capita(data) {
         .attr("cx", d => x(d.gdp))
         .attr("cy", d => y(d.energy))
         .attr("r", 6)
-        .attr("fill", "#4f46e5")
+        .attr("fill", "#67acd4")
         .attr("opacity", 0.7)
-        .attr("stroke", "#fff")
+        .attr("stroke", "#4fa0c0")
         .style("cursor", "pointer")
         .on("mouseover", function(event, d) {
             d3.select(this).attr("r", 9).attr("opacity", 1).attr("stroke", "#000");
@@ -389,7 +391,7 @@ function update_correlation_energy_consumption_gdp_per_capita(data) {
                    .style("top", (event.pageY - 28) + "px");
         })
         .on("mouseout", function() {
-            d3.select(this).attr("r", 6).attr("opacity", 0.7).attr("stroke", "#fff");
+            d3.select(this).attr("r", 6).attr("opacity", 0.7).attr("stroke", "#4fa0c0");
             tooltip.style("opacity", 0);
         });
 
@@ -458,7 +460,7 @@ function update_countries_gdp(data) {
     const path = d3.geoPath().projection(projection);
     const g = countries_gdp_svg.append("g");
 
-    const mapZoom = d3.zoom().scaleExtent([1, 8]).on("zoom", (event) => g.attr("transform", event.transform));
+    const mapZoom = d3.zoom().scaleExtent([-5, 8]).on("zoom", (event) => g.attr("transform", event.transform));
     countries_gdp_svg.call(mapZoom);
 
     d3.json("https://raw.githubusercontent.com/holtzy/D3-graph-gallery/master/DATA/world.geojson").then(world => {
@@ -572,7 +574,7 @@ function update_no_countries_with_gdp_less_than_2000(data) {
         .attr('text-anchor', 'middle')
         .attr('font-weight', 'bold')
         .attr('font-size', '54px')
-        .attr('fill', '#4f46e5')
+        .attr('fill', '#67acd4')
         .text(count);
 
     // 4. Subtext
@@ -625,7 +627,7 @@ function update_no_countries_with_gdp_more_than_2000(data) {
         .attr('text-anchor', 'middle')
         .attr('font-weight', 'bold')
         .attr('font-size', '54px')
-        .attr('fill', '#4f46e5')
+        .attr('fill', '#67acd4')
         .text(count);
 
     // 4. Subtext
@@ -725,7 +727,7 @@ function update_comparison_of_greenest(data, selectedCountry = null) {
         .attr("y", d => y(d.country))
         .attr("width", d => x(d.fossil_pct))
         .attr("height", y.bandwidth())
-        .attr("fill", "#ef4444")
+        .attr("fill", "#67acd4")
         .on("mouseover", showTooltip)
         .on("mousemove", moveTooltip)
         .on("mouseout", () => tooltip.style("visibility", "hidden"));
@@ -737,7 +739,7 @@ function update_comparison_of_greenest(data, selectedCountry = null) {
         .attr("y", d => y(d.country))
         .attr("width", d => x(d.low_carbon_pct))
         .attr("height", y.bandwidth())
-        .attr("fill", "#22c55e")
+        .attr("fill", "#a5cce5")
         .on("mouseover", showTooltip)
         .on("mousemove", moveTooltip)
         .on("mouseout", () => tooltip.style("visibility", "hidden"));
@@ -750,10 +752,10 @@ function update_comparison_of_greenest(data, selectedCountry = null) {
 
     const legend = comparison_of_greenest_svg.append("g").attr("transform", `translate(${width/2 - 60}, 45)`);
     
-    legend.append("rect").attr("width", 12).attr("height", 12).attr("fill", "#ef4444");
+    legend.append("rect").attr("width", 12).attr("height", 12).attr("fill", "#67acd4");
     legend.append("text").attr("x", 18).attr("y", 10).text("Fossil").style("font-size", "12px").attr("alignment-baseline", "middle");
     
-    legend.append("rect").attr("x", 70).attr("width", 12).attr("height", 12).attr("fill", "#22c55e");
+    legend.append("rect").attr("x", 70).attr("width", 12).attr("height", 12).attr("fill", "#a5cce5");
     legend.append("text").attr("x", 88).attr("y", 10).text("Green").style("font-size", "12px").attr("alignment-baseline", "middle");
 
     // Axes

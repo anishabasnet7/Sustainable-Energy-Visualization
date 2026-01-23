@@ -13,30 +13,38 @@
     <link rel="stylesheet" href="css/bootstrap.min.css">
     <link rel="stylesheet" href="css/style.min.css">
     <link rel="stylesheet" href="css/main.css">
+
+    <style>
+        /* blue for interactive and accent elements */
+        .accent-custom { accent-color: #67acd4; }
+        .nav-dot { background-color: #67acd4 !important; }
+        .border-accent { border-color: #67acd4; }
+        .active-link { border-bottom: 2px solid #67acd4; color: #000 !important; }
+    </style>
 </head>
 
 <body class="bg-gray-100 font-sans leading-normal tracking-normal">
     <nav class="navbar">
         <div class="nav-inner">
             <a class="nav-brand" href="index.html">
-                <span class="nav-dot"></span>
+                <span class="nav-dot w-3 h-3 rounded-full"></span>
                 Global Sustainable Energy
             </a>
 
             <div class="nav-right">
                 <ul class="nav-links">
-                    <li><a href="index.html">Home</a></li>
-                    <li><a href="user_stories.html">Stories</a></li>
+                    <li><a href="index.html"  class="active-link font-bold">Home</a></li>
+                    <li><a href="user_stories.html" class="text-gray-600 hover:text-black transition-colors">Stories</a></li>
                 </ul>
             </div>
         </div>
     </nav>
 
     <div id="controls">
-        <label class="font-bold text-indigo-900 whitespace-nowrap" for="region-select">Region:</label>
-        <select id="region-select"></select>
-        <label class="font-bold text-indigo-900 whitespace-nowrap" for="year-select">Select Year:</label>
-        <select id="year-select"></select>
+        <label class="font-bold text-[#083E80] whitespace-nowrap" for="region-select">Region:</label>
+        <select id="region-select" class="font-bold"></select>
+        <label class="font-bold text-[#083E80] whitespace-nowrap" for="year-select">Select Year:</label>
+        <select id="year-select" class="font-bold"></select>
         
     </div>
 
