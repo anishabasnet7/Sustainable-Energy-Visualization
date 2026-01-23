@@ -232,7 +232,12 @@ function draw_interactive_atlas_d5(csvPath, containerId) {
                 const name = d.properties.name === "United States of America" ? "United States" : d.properties.name;
                 const val = dataMap.get(name);
                 d3.select(this).attr("stroke", "#67acd4").attr("stroke-width", 2).raise();
-                tip.style("opacity", 1).html(`<strong>${name}</strong><br>Renewable Energy: ${val ? Math.round(val).toLocaleString() + ' %' : 'No Data'} <br><span style="color: #67acd4;">Click to analyze energy mix</span>`);
+                let tooltipHtml = `<strong>${name}</strong><br>`;
+                tooltipHtml += val !== undefined ? `Renewable Energy: ${Math.round(val).toLocaleString()} %` : 'No Data';
+                if (val !== undefined) {
+                    tooltipHtml += ` <br><span style="color: #67acd4;">Click to analyze energy mix</span>`;
+                }
+                tip.style("opacity", 1).html(tooltipHtml);
             })
             .on("mousemove", (event) => tip.style("left", (event.pageX + 15) + "px").style("top", (event.pageY - 28) + "px"))
             .on("mouseout", function() {
