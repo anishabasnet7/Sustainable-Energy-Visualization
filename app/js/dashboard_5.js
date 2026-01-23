@@ -52,7 +52,7 @@ export function draw_fossil_vs_lowcarbon(data_path, containerId, year, selectedC
                .html(`
                 <div class="font-bold border-b mb-1">${d.country}</div>
                 <div style="color: #4682b4">● Fossil: ${Math.round(d.fossil_pct)}%</div>
-                <div style="color: #87ceeb">● Low Carbon: ${Math.round(d.low_carbon_pct)}%</div>
+                <div style="color: #87ceeb">● Renewable Energy: ${Math.round(d.low_carbon_pct)}%</div>
                `);
         };
 
