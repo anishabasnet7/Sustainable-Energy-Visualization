@@ -482,7 +482,7 @@ function update_countries_gdp(data) {
             .attr("stroke-width", 0.5)
             .on("mouseover", function(event, d) {
                 const val = gdpMap.get(d.properties.name);
-                d3.select(this).attr("stroke", "#4338ca").attr("stroke-width", 1).raise();
+                d3.select(this).attr("stroke", "#67acd4").attr("stroke-width", 1).raise();
                 tooltip.transition().duration(100).style("opacity", 1);
                 tooltip.html(`<b>${d.properties.name}</b><br>GDP per Capita: ${val ? d3.format("$,.0f")(val) : 'No Data'}`);
             })
