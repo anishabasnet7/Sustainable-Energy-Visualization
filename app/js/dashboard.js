@@ -29,7 +29,16 @@ const tooltip = d3.select("body")
 // ───────────────────────────────────────────────
 
 d3.csv(csvPath).then(data => {
-    globalData = data; // Store in global scope
+    data.forEach(d => {
+        let name = d.country;
+        if (name === "United States") name = "USA";
+        if (name === "Democratic Republic of the Congo") name = "Dem. Rep. Congo";
+        if (name === "Congo") name = "Republic of the Congo";
+        if (name === "Czechia") name = "Czech Republic";
+        d.country = name; 
+    });
+
+    globalData = data; 
     
     const regions = Array.from(new Set(data.map(d => d.region))).sort();
     regionSelect.append("option").attr("value", "All").text("All Regions");
@@ -49,7 +58,6 @@ d3.csv(csvPath).then(data => {
         .attr("value", d => d)
         .text(d => d);
 
-    // Initial draw
     refreshAll();
 });
 
@@ -230,10 +238,18 @@ function update_top_10_countries_co2_emission(data) {
     const g = top_10_countries_co2_emission_svg.append("g")
         .attr("transform", `translate(${margin.left},${margin.top})`);
 
+    // Mapping logic applied inside the rollup
     const aggregatedData = d3.rollup(
         data,
         v => d3.sum(v, d => +d.total_co2_emissions / 1000000000), 
-        d => d.country
+        d => {
+            let name = d.country;
+            if (name === "United States") name = "USA";
+            if (name === "Democratic Republic of the Congo") name = "Dem. Rep. Congo";
+            if (name === "Congo") name = "Republic of the Congo";
+            if (name === "Czechia") name = "Czech Republic";
+            return name;
+        }
     );
 
     const topData = Array.from(aggregatedData, ([country, total_emission]) => ({
@@ -305,7 +321,6 @@ function update_top_10_countries_co2_emission(data) {
         .attr("fill", "#4b5563")
         .text("Total CO2 Emissions");
 }
-
 
 
 // ───────────────────────────────────────────────
@@ -438,20 +453,8 @@ function update_countries_gdp(data) {
 
     const margin = { top: 50, right: 20, bottom: 60, left: 20 };
 
-    const gdpMap = new Map();
-    data.forEach(d => {
-        const val = +d.gdp_per_capita;
-        if (!isNaN(val)) {
-            let name = d.country;
-            // Manual overrides to match GeoJSON standards
-            if (name === "United States") name = "USA";
-            if (name === "Democratic Republic of the Congo") name = "Dem. Rep. Congo";
-            if (name === "Congo") name = "Republic of the Congo";
-            if (name === "Czechia") name = "Czech Republic";
-            
-            gdpMap.set(name, val);
-        }
-    });
+    const activeCountryNames = new Set(data.map(d => d.country));
+    const gdpMap = new Map(data.map(d => [d.country, +d.gdp_per_capita]));
 
     const maxGdp = d3.max(Array.from(gdpMap.values())) || 100000;
     const colorScale = d3.scaleSequential().domain([0, maxGdp]).interpolator(d3.interpolateBlues);
@@ -465,10 +468,16 @@ function update_countries_gdp(data) {
 
     d3.json("https://raw.githubusercontent.com/holtzy/D3-graph-gallery/master/DATA/world.geojson").then(world => {
         
+        const filteredFeatures = world.features.filter(f => activeCountryNames.has(f.properties.name));
+
+        const zoomObject = filteredFeatures.length > 0 && filteredFeatures.length < 150 
+            ? { type: "FeatureCollection", features: filteredFeatures } 
+            : world;
+
         projection.fitExtent([
             [margin.left, margin.top], 
             [width - margin.right, height - margin.bottom - 20]
-        ], world);
+        ], zoomObject);
 
         g.selectAll("path")
             .data(world.features)
@@ -530,7 +539,6 @@ function update_countries_gdp(data) {
         .attr('font-weight', 'bold').attr('font-size', '16px')
         .text('World GDP per Capita Distribution');
 }
-
 // ───────────────────────────────────────────────
 // 7) Number of countries with gdp less and more than 2000
 // ───────────────────────────────────────────────
