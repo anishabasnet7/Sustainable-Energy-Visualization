@@ -1,0 +1,69 @@
+<script src="https://d3js.org/d3.v7.min.js"></script> 
+<body>
+    <svg width="800" height="600"></svg>
+    
+    <script>
+        const svg = d3.select("svg");
+        const width = +svg.attr("width");
+        const height = +svg.attr("height");
+
+        // data
+        d3.csv("https://raw.githubusercontent.com/holtzy/data_to_viz/master/Example_dataset/4_ThreeNum.csv").then(function(data) {
+            console.log(data);
+
+            // reads as string so converting to numerical
+            data.forEach(d => {
+                d.gdpPercap = +d.gdpPercap;
+                d.lifeExp = +d.lifeExp;
+                d.pop = +d.pop;
+            });
+
+            // scales
+            const x = d3.scaleLinear()
+                        .domain([0, 10000])  // notice GDP values very higher that made plot impact so only till 10,000 as per figure for assignment
+                        .range([50, width - 50]);
+
+            const y = d3.scaleLinear()
+                        .domain([0, d3.max(data, d => d.lifeExp)])
+                        .range([height - 50, 50]);
+
+            const size = d3.scaleSqrt()
+                           .domain([0, d3.max(data, d => d.pop)])
+                           .range([2, 40]); // radius 
+
+            const color = d3.scaleOrdinal(d3.schemeCategory10);
+            const continents = Array.from(new Set(data.map(d => d.continent)));
+            const continentColors = {};
+            continents.forEach(cont => {
+                continentColors[cont] = color(cont);
+            });
+            console.log("Continent colors", continentColors);
+
+            const Data = data.filter(d => d.gdpPercap <= 10000); // not all dataset, only till 10,000
+
+            svg.selectAll("circle")
+               .data(Data)
+               .enter()
+               .append("circle")
+               .attr("cx", d => x(d.gdpPercap))
+               .attr("cy", d => y(d.lifeExp))
+               .attr("r", d => size(d.pop))
+               .attr("fill", d =>  color(d.continent))
+
+            // adding x- and y- axis
+            const xAxis = d3.axisBottom(x);
+            const yAxis = d3.axisLeft(y);
+
+            svg.append("g")
+               .attr("transform", `translate(0, ${height - 50})`)
+               .call(xAxis);
+
+            svg.append("g")
+               .attr("transform", `translate(50, 0)`)
+               .call(yAxis);
+        });
+    </script>
+</body>
+</html>
+
+<!--Acknowledgment: This is assisted by an AI assistant, which provided the guidance only.-->

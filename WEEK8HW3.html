@@ -1,0 +1,79 @@
+<script src="https://d3js.org/d3.v7.min.js"></script>
+<svg id="svg" width="1100" height="600"></svg>
+
+<script>
+const margin = {top: 50, right: 50, bottom: 20, left: 50}; //margin for SVG
+const width = 1100 - margin.left - margin.right; //width of drawing area
+const height = 600 - margin.top - margin.bottom; //height
+const svg = d3.select("#svg") //id
+    .append("g") //append group element for margin
+    .attr("transform", `translate(${margin.left},${margin.top})`);
+d3.csv("diabetes.csv").then(data => {
+    //numeric for all attributes
+    data.forEach(d => { for (const key in d) d[key] = +d[key]; });
+    const quantitative = ["BMI","BP","S1","S2","S3","S4","S5","S6"];
+    //x-scale position of axis
+    const x = d3.scalePoint()
+        .domain(quantitative)
+        .range([0, width])
+        .padding(0.3);
+    //y-scales attribute
+    const y = {};
+    quantitative.forEach(attr => {
+        y[attr] = d3.scaleLinear()
+            .domain(d3.extent(data, d => d[attr]))
+            .range([height, 0]);
+    });
+    //color
+    const maleColor = d3.scaleSequential(d3.interpolateBlues) //male(1) = red
+        .domain(d3.extent(data, d => d.AGE));
+    const femaleColor = d3.scaleSequential(d3.interpolateReds) //female(2) = red
+        .domain(d3.extent(data, d => d.AGE));
+
+    function colorBySexAge(d) {
+        return d.SEX === 1 ? maleColor(d.AGE) : femaleColor(d.AGE);
+    }
+    //point array for each row
+    const lineData = data.map(row => ({
+        raw: row,
+        points: quantitative.map(attr => ({
+            axis: x(attr), //scaled x-position
+            value: y[attr](row[attr]) //scaled y-position
+        }))
+    }));
+    //line generator from point array
+    const lineGen = d3.line()
+        .x(p => p.axis) //x-cordinate
+        .y(p => p.value) //y-cordinate
+        .curve(d3.curveLinear); //straight line segment
+    //one path per row
+    svg.selectAll(".person")
+        .data(lineData)
+        .join('path')
+        .attr("class", "person")
+        .attr("d", d => lineGen(d.points)) //path string from points
+        .attr("fill", "none")
+        .attr("stroke", d => colorBySexAge(d.raw)) //stroke color on sex/age
+        .attr("stroke-width", 1.2) //thickness line
+        .attr("opacity", 0.6);
+    //axes and labels
+    quantitative.forEach(attr => {
+        const g = svg.append("g")
+            .attr("transform", `translate(${x(attr)},0)`);
+
+        g.call(d3.axisLeft(y[attr])); //left acis
+
+        g.append("text") //axis label
+            .attr("y", -25)
+            .attr("x", 0)
+            .attr("text-anchor", "middle")
+            .attr("font-size", "16px")
+            .attr("font-weight", "bold")
+            .attr("fill", "black")
+            .text(attr);
+    });
+});
+</script>
+
+
+<!--Acknowledgment: This is assisted by an AI assistant, which provided the guidance only.-->

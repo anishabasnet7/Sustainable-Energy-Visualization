@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Earthquakes</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="https://d3js.org/topojson.v1.min.js"></script>
+    <style>
+        body { font-family: sans-serif; margin: 20px; display: flex; flex-direction: column; align-items: center; }
+        h1 { margin-bottom: 10px; }
+        
+        .row { display: flex; gap: 20px; margin-top: 20px; }
+        
+        svg { border: 1px solid #ccc; background: #fff; }
+        
+        /*visual*/
+        .bar { fill: steelblue; }
+        .bar-background { fill: #eee; }
+        .dot { stroke: #fff; stroke-width: 0.5px; opacity: 0.8; }
+        .country { fill: #e0e0e0; stroke: #999; stroke-width: 0.5px; }
+
+        /*brushing*/
+        .hidden { opacity: 0.1; fill: #ccc !important; }
+    </style>
+</head>
+<body>
+
+    <h1>Earthquake Analysis</h1>
+    <div id="summary-section">
+    <h3>Visualization</h3>
+    <ul>
+        <li>Data Loading: Read <code>earthquakes.csv</code> and fetch a world map shapefile simultaneously</li>
+        <li>Three Views: Display Timeline (frequency over time), Map (geo-locations), and Scatterplot (Depth vs. Magnitude)</li>
+        <li>Interactive Brushing: Enable user drag selected box on any three charts to filter data.</li>
+        <li>Linked View: Automatically update all charts based on the selection.</li>
+        <li>Visual Feedback: Use color to indicate earthquake magnitude and transparency to hide unselected point.</li>
+    </ul>
+</div>
+
+    <!--timeline-->
+    <div id="timeline-view"></div>
+
+    <div class="row">
+        <!--map-->
+        <div id="map-view"></div>
+        <!--scatterplot-->
+        <div id="scatter-view"></div>
+    </div>
+
+<script>
+
+const widthMap = 450, heightMap = 300;
+const widthScatter = 450, heightScatter = 300;
+const widthTimeline = 920, heightTimeline = 100;
+const margin = {top: 20, right: 20, bottom: 30, left: 50};
+
+//data laod
+Promise.all([
+    d3.csv("earthquakes.csv"),
+    d3.json("https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json")
+]).then(([rawData, worldTopology]) => {
+
+    //process data
+    const allData = rawData.map(d => ({
+        id: d.id,
+        time: new Date(d.time), //ISO string to date object
+        lat: +d.latitude,       //string to number
+        lon: +d.longitude,
+        depth: +d.depth,
+        mag: +d.mag
+    }));
+    
+    //timeline scale
+    const dateExtent = d3.extent(allData, d => d.time);
+    //bins for every day
+    const xTime = d3.scaleTime()
+        .domain([d3.timeDay.offset(dateExtent[0], -1), d3.timeDay.offset(dateExtent[1], 1)])
+        .range([0, widthTimeline - margin.left - margin.right]);
+
+    const histogram = d3.bin()
+        .value(d => d.time)
+        .domain(xTime.domain())
+        .thresholds(xTime.ticks(d3.timeDay));
+
+    const bins = histogram(allData);
+
+    const yTime = d3.scaleLinear()
+        .domain([0, d3.max(bins, d => d.length)])
+        .range([heightTimeline - margin.top - margin.bottom, 0]);
+
+    //scatter scales
+    const xScatter = d3.scaleLinear()
+        .domain([0, d3.max(allData, d => d.depth)]) //depth on X
+        .range([0, widthScatter - margin.left - margin.right]);
+
+    const yScatter = d3.scaleLinear()
+        .domain([0, d3.max(allData, d => d.mag)])   //magnitude on Y
+        .range([heightScatter - margin.top - margin.bottom, 0]);
+
+    //map projection
+    const projection = d3.geoMercator()
+        .scale(70)
+        .translate([widthMap / 2, heightMap / 1.5]);
+    const path = d3.geoPath().projection(projection);
+
+    //color scale
+    const colorScale = d3.scaleSequential(d3.interpolateMagma)
+        .domain([0, 8]); //assuming magnitude range 0-8
+
+    //timeline
+    const svgTimeline = d3.select("#timeline-view").append("svg")
+        .attr("width", widthTimeline)
+        .attr("height", heightTimeline);
+    
+    const gTimeline = svgTimeline.append("g")
+        .attr("transform", `translate(${margin.left},${margin.top})`);
+
+    //gray background bars --> to show total context
+    gTimeline.selectAll(".bar-background")
+        .data(bins)
+        .enter().append("rect")
+        .attr("class", "bar-background")
+        .attr("x", d => xTime(d.x0))
+        .attr("width", d => Math.max(0, xTime(d.x1) - xTime(d.x0) - 1))
+        .attr("y", d => yTime(d.length))
+        .attr("height", d => heightTimeline - margin.top - margin.bottom - yTime(d.length));
+
+    //blue foreground bars --> will react to filtering
+    const bars = gTimeline.selectAll(".bar")
+        .data(bins)
+        .enter().append("rect")
+        .attr("class", "bar")
+        .attr("x", d => xTime(d.x0))
+        .attr("width", d => Math.max(0, xTime(d.x1) - xTime(d.x0) - 1))
+        .attr("y", d => yTime(d.length))
+        .attr("height", d => heightTimeline - margin.top - margin.bottom - yTime(d.length));
+
+    //time axis
+    gTimeline.append("g")
+        .attr("transform", `translate(0,${heightTimeline - margin.top - margin.bottom})`)
+        .call(d3.axisBottom(xTime).ticks(10).tickFormat(d3.timeFormat("%b %d")));
+
+    //draw map
+    const svgMap = d3.select("#map-view").append("svg")
+        .attr("width", widthMap)
+        .attr("height", heightMap);
+
+    const countries = topojson.feature(worldTopology, worldTopology.objects.countries);
+    
+    svgMap.append("path")
+        .datum(countries)
+        .attr("class", "country")
+        .attr("d", path);
+
+    const mapDots = svgMap.selectAll("circle")
+        .data(allData)
+        .enter().append("circle")
+        .attr("class", "dot")
+        .attr("cx", d => projection([d.lon, d.lat])[0])
+        .attr("cy", d => projection([d.lon, d.lat])[1])
+        .attr("r", 3)
+        .attr("fill", d => colorScale(d.mag));
+
+    //draw scatterplot
+    const svgScatter = d3.select("#scatter-view").append("svg")
+        .attr("width", widthScatter)
+        .attr("height", heightScatter);
+    
+    const gScatter = svgScatter.append("g")
+        .attr("transform", `translate(${margin.left},${margin.top})`);
+
+    //axis
+    gScatter.append("g")
+        .attr("transform", `translate(0,${heightScatter - margin.top - margin.bottom})`)
+        .call(d3.axisBottom(xScatter));
+    
+    gScatter.append("text")
+        .attr("x", widthScatter/2).attr("y", heightScatter - 5)
+        .style("text-anchor", "middle").style("font-size", "12px")
+        .text("Depth");
+
+    gScatter.append("g").call(d3.axisLeft(yScatter));
+    
+    gScatter.append("text")
+        .attr("transform", "rotate(-90)")
+        .attr("y", -30).attr("x", -heightScatter/2)
+        .style("text-anchor", "middle").style("font-size", "12px")
+        .text("Magnitude");
+
+    const scatterDots = gScatter.selectAll("circle")
+        .data(allData)
+        .enter().append("circle")
+        .attr("class", "dot")
+        .attr("cx", d => xScatter(d.depth))
+        .attr("cy", d => yScatter(d.mag))
+        .attr("r", 4)
+        .attr("fill", d => colorScale(d.mag));
+
+    //define brushes
+    const brushTimeline = d3.brushX()
+        .extent([[0, 0], [widthTimeline - margin.left - margin.right, heightTimeline - margin.top - margin.bottom]])
+        .on("brush end", updateCharts);
+
+    const brushMap = d3.brush()
+        .extent([[0, 0], [widthMap, heightMap]])
+        .on("brush end", updateCharts);
+
+    const brushScatter = d3.brush()
+        .extent([[0, 0], [widthScatter - margin.left - margin.right, heightScatter - margin.top - margin.bottom]])
+        .on("brush end", updateCharts);
+
+    //attach them
+    const gBrushTime = gTimeline.append("g").attr("class", "brush").call(brushTimeline);
+    const gBrushMap = svgMap.append("g").attr("class", "brush").call(brushMap);
+    const gBrushScatter = gScatter.append("g").attr("class", "brush").call(brushScatter);
+
+    //update func
+    function updateCharts() {
+        const selTime = d3.brushSelection(gBrushTime.node());
+        const selMap = d3.brushSelection(gBrushMap.node());
+        const selScatter = d3.brushSelection(gBrushScatter.node());
+
+        //filter data
+        const selectedData = allData.filter(d => {
+            //check timeline
+            let inTime = true;
+            if (selTime) {
+                const [d0, d1] = [xTime.invert(selTime[0]), xTime.invert(selTime[1])];
+                inTime = d.time >= d0 && d.time <= d1;
+            }
+            
+            //check map -- geo coords converted to pixels
+            let inMap = true;
+            if (selMap) {
+                const [[x0, y0], [x1, y1]] = selMap;
+                const [px, py] = projection([d.lon, d.lat]);
+                inMap = px >= x0 && px <= x1 && py >= y0 && py <= y1;
+            }
+
+            //check scatter
+            let inScatter = true;
+            if (selScatter) {
+                const [[x0, y0], [x1, y1]] = selScatter;
+                const px = xScatter(d.depth);
+                const py = yScatter(d.mag);
+                inScatter = px >= x0 && px <= x1 && py >= y0 && py <= y1;
+            }
+
+            return inTime && inMap && inScatter;
+        });
+
+        //update visual using CSS class
+        const isAnyBrushActive = selTime || selMap || selScatter;
+
+        //if no brush is active show everything, if active fade non-selected
+        if (isAnyBrushActive) {
+            mapDots.classed("hidden", d => !selectedData.includes(d));
+            scatterDots.classed("hidden", d => !selectedData.includes(d));
+        } else {
+            mapDots.classed("hidden", false);
+            scatterDots.classed("hidden", false);
+        }
+
+        //update timeline - only for the selected data
+        const selectedBins = histogram(selectedData);
+        
+        //update height of blue bars
+        bars.data(bins) //bind original bins
+            .attr("height", (d, i) => {
+                //find matching bin in selectedBins n Comparing bin start times ensures correct matching
+                const match = selectedBins.find(sb => sb.x0.getTime() === d.x0.getTime());
+                const count = match ? match.length : 0;
+                return heightTimeline - margin.top - margin.bottom - yTime(count);
+            })
+            .attr("y", (d, i) => {
+                const match = selectedBins.find(sb => sb.x0.getTime() === d.x0.getTime());
+                const count = match ? match.length : 0;
+                return yTime(count);
+            });
+    }
+
+}).catch(err => {
+    console.error(err);
+    alert("Error");
+});
+
+</script>
+</body>
+</html>

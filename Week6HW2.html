@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Iris</title>
+<script src="https://d3js.org/d3.v7.min.js"></script>
+<style>
+    .matrix {
+        display: grid;
+        grid-gap: 10px;
+    }
+    svg {
+        border: 1px solid #eee;
+    }
+</style>
+</head>
+<body>
+<h2>Iris Dataset</h2>
+<div id="matrix"></div>
+
+<script>
+const species = { "setosa": 0, "versicolor": 1, "virginica": 2 };
+const colors = d3.schemeCategory10;
+
+d3.csv("https://raw.githubusercontent.com/mwaskom/seaborn-data/master/iris.csv").then(data => {
+    data.forEach(d => {
+        d.sepal_length = +d.sepal_length;
+        d.sepal_width = +d.sepal_width;
+        d.petal_length = +d.petal_length;
+        d.petal_width = +d.petal_width;
+    });
+    MainFunc(data);
+});
+
+// scatter
+function Scatter( svg, data, width, height, xAccessor, yAccessor, colorAccessor) {
+    const mar = {top: 5, right: 5, bottom: 25, left: 25};
+    const innerWid = width - mar.left - mar.right;
+    const innerHeit = height - mar.top - mar.bottom;
+
+    const x = d3.scaleLinear()
+        .domain(d3.extent(data, xAccessor))
+        .range([0, innerWid]);
+
+    const y = d3.scaleLinear()
+        .domain(d3.extent(data, yAccessor))
+        .range([innerHeit, 0]);
+
+    const g = svg.append("g").attr("transform", `translate(${mar.left},${mar.top})`);
+
+    g.selectAll("circle")
+        .data(data)
+        .enter()
+        .append("circle")
+        .attr("cx", d => x(xAccessor(d)))
+        .attr("cy", d => y(yAccessor(d)))
+        .attr("r", 3)
+        .attr("fill", d => colors[colorAccessor(d)]);
+
+    g.append("g")
+        .attr("transform", `translate(0,${innerHeit})`)
+        .call(d3.axisBottom(x).ticks(3));
+
+    g.append("g")
+        .call(d3.axisLeft(y).ticks(3));
+}
+
+// histogram
+function Histo(svg, data, width, height, accessor) {
+    const mar = {top: 5, right: 5, bottom: 25, left: 25};
+    const innerWid = width - mar.left - mar.right;
+    const innerHeit = height - mar.top - mar.bottom;
+
+    const x = d3.scaleLinear()
+        .domain(d3.extent(data, accessor))
+        .range([0, innerWid]);
+
+    const histogram = d3.histogram()
+        .value(accessor)
+        .domain(x.domain())
+        .thresholds(x.ticks(15));
+
+    const bins = histogram(data);
+
+    const y = d3.scaleLinear()
+        .domain([0, d3.max(bins, d => d.length)])
+        .range([innerHeit, 0]);
+
+    const g = svg.append("g").attr("transform", `translate(${mar.left},${mar.top})`);
+
+    g.selectAll("rect")
+        .data(bins)
+        .enter()
+        .append("rect")
+        .attr("x", d => x(d.x0))
+        .attr("y", d => y(d.length))
+        .attr("width", d => x(d.x1) - x(d.x0) - 1)
+        .attr("height", d => innerHeit - y(d.length))
+        .attr("fill", "steelblue");
+
+    g.append("g")
+        .attr("transform", `translate(0,${innerHeit})`)
+        .call(d3.axisBottom(x).ticks(3));
+
+    g.append("g")
+        .call(d3.axisLeft(y).ticks(3));
+}
+function MainFunc(data) {
+    const attributes = ["sepal_length", "sepal_width", "petal_length", "petal_width"];
+    const size = 150;
+
+    const matrixContainer = d3.select("#matrix")
+        .style("grid-template-columns", `repeat(${attributes.length}, ${size}px)`)
+        .style("display", "grid");
+
+    attributes.forEach((yAttr) => {
+        attributes.forEach((xAttr) => {
+            const svg = matrixContainer.append("svg")
+                .attr("width", size)
+                .attr("height", size);
+
+            if (xAttr === yAttr) {
+                Histo(svg, data, size, size, d => d[xAttr]);
+            } else {
+                Scatter(svg, data, size, size, d => d[xAttr], d => d[yAttr], d => species[d.species]);
+            }
+        });
+    });
+}
+</script>
+</body>
+</html>
+
+<!--Acknowledgment: This is assisted by an AI assistant, which provided the guidance only.-->
